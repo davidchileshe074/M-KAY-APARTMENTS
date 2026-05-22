@@ -296,8 +296,8 @@
     ],
     blockedRanges: [], // Array of { start: 'YYYY-MM-DD', end: 'YYYY-MM-DD' }
     paymentMethods: [
-      { id: "mtn", name: "MTN Mobile Money", icon: "fa-solid fa-mobile-screen-button", enabled: true, details: "Send to MTN Mobile Money:\nMerchant Code / Number: +260 764336304\nName: M Kay Apartments Ltd" },
-      { id: "airtel", name: "Airtel Money", icon: "fa-solid fa-mobile-screen-button", enabled: true, details: "Send to Airtel Money:\nNumber: +260 978176858\nName: Masozi Kamanga" },
+      { id: "mtn", name: "MTN Mobile Money", icon: "fa-solid fa-mobile-screen-button", image: "payments icon/mtn-new-logo.svg", enabled: true, details: "Send to MTN Mobile Money:\nMerchant Code / Number: +260 764336304\nName: M Kay Apartments Ltd" },
+      { id: "airtel", name: "Airtel Money", icon: "fa-solid fa-mobile-screen-button", image: "payments icon/Airtel_logo-02.png", enabled: true, details: "Send to Airtel Money:\nNumber: +260 978176858\nName: Masozi Kamanga" },
       { id: "fnb", name: "FNB Bank Transfer", icon: "fa-solid fa-building-columns", enabled: true, details: "Bank: First National Bank (FNB)\nAccount: 62981726354\nBranch: Livingstone\nName: M KAY APARTMENTS LTD" },
       { id: "card", name: "Credit/Debit Card", icon: "fa-solid fa-credit-card", enabled: true, details: "We will email/WhatsApp you a secure payment link to pay with your card." },
       { id: "cash", name: "Cash on Arrival", icon: "fa-solid fa-money-bill-wave", enabled: true, details: "Pay cash in Zambian Kwacha (K) or USD upon arrival at check-in." }
@@ -316,6 +316,16 @@
           if (state[key] === undefined) {
             state[key] = defaultState[key];
           }
+        }
+        // Ensure image and icon properties are merged from defaultState
+        if (state.paymentMethods && Array.isArray(state.paymentMethods)) {
+          state.paymentMethods.forEach(method => {
+            const defMethod = defaultState.paymentMethods.find(m => m.id === method.id);
+            if (defMethod) {
+              method.icon = defMethod.icon;
+              method.image = defMethod.image;
+            }
+          });
         }
       } catch (e) {
         state = defaultState;
@@ -630,8 +640,13 @@
       const card = document.createElement("div");
       card.className = "payment-method-card";
       card.setAttribute("data-method", method.id);
+      
+      const iconHtml = method.image 
+        ? `<img src="${method.image}" alt="${method.name}">`
+        : `<i class="${method.icon}"></i>`;
+
       card.innerHTML = `
-        <i class="${method.icon}"></i>
+        ${iconHtml}
         <span>${method.name}</span>
       `;
 
@@ -1046,9 +1061,14 @@
       const div = document.createElement("div");
       div.className = "payment-settings-item";
       div.setAttribute("data-id", method.id);
+
+      const iconHtml = method.image 
+        ? `<img src="${method.image}" alt="${method.name}">`
+        : `<i class="${method.icon}"></i>`;
+
       div.innerHTML = `
         <div class="payment-settings-header">
-          <span><i class="${method.icon}"></i> ${method.name}</span>
+          <span>${iconHtml} ${method.name}</span>
           <label class="switch">
             <input type="checkbox" class="payment-checkbox" ${method.enabled ? 'checked' : ''}>
             <span class="slider-switch"></span>
