@@ -1542,13 +1542,7 @@ body.dark-theme .legend-dot.blocked {
   width: auto;
   max-width: 100%;
   object-fit: contain;
-  filter: grayscale(1) opacity(0.65);
   transition: all var(--transition);
-}
-
-.payment-method-card:hover img,
-.payment-method-card.active img {
-  filter: none;
 }
 
 .payment-method-card span {
