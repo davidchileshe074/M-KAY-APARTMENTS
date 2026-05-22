@@ -406,6 +406,26 @@
             <a href="tel:+260978176858" class="btn btn-outline">Call Reservations</a>
             <a href="https://wa.me/260764336304" target="_blank" rel="noopener" class="btn">Live WhatsApp Chat</a>
           </div>
+
+          <!-- Interactive Calendar Widget -->
+          <div class="calendar-widget" id="bookingCalendarWidget">
+            <div class="calendar-header">
+              <button type="button" id="prevMonthBtn" class="calendar-nav-btn" aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button>
+              <h3 id="currentMonthYear">June 2026</h3>
+              <button type="button" id="nextMonthBtn" class="calendar-nav-btn" aria-label="Next month"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="calendar-weekdays">
+              <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+            </div>
+            <div class="calendar-days" id="calendarDaysGrid">
+              <!-- Rendered dynamically -->
+            </div>
+            <div class="calendar-legend">
+              <div><span class="legend-dot standard"></span> Standard</div>
+              <div><span class="legend-dot holiday"></span> High Season</div>
+              <div><span class="legend-dot blocked"></span> Booked/Unavailable</div>
+            </div>
+          </div>
         </div>
 
         <form class="booking-form reveal" id="bookingForm">
@@ -428,7 +448,7 @@
               </select>
             </label>
             <label>Apartment Type
-              <select name="apartment" required>
+              <select name="apartment" id="apartmentSelect" required>
                 <option value="">Select apartment</option>
                 <option value="Executive Comfort Suite">Executive Comfort Suite</option>
                 <option value="Family Premium Apartment">Family Premium Apartment</option>
@@ -448,6 +468,27 @@
               <input type="text" name="request" placeholder="Airport pickup, early check-in...">
             </label>
           </div>
+
+          <!-- Price Breakdown Card -->
+          <div class="price-breakdown-card" id="priceBreakdownCard" style="display: none;">
+            <h4>Estimated Price Breakdown</h4>
+            <div id="breakdownDetails"></div>
+            <div class="breakdown-total">
+              <span>Total Price:</span>
+              <strong id="breakdownTotalPrice">K0</strong>
+            </div>
+          </div>
+
+          <!-- Payment Method Selector -->
+          <div class="payment-method-section">
+            <h4>Select Payment Method</h4>
+            <div class="payment-methods-grid" id="paymentMethodsGrid">
+              <!-- Rendered dynamically -->
+            </div>
+            <div class="payment-instructions" id="paymentInstructionsBox" style="display: none;"></div>
+            <input type="hidden" name="payment_method" id="selectedPaymentMethodInput" required>
+          </div>
+
           <button type="submit" class="btn">Send Reservation via WhatsApp</button>
           <p class="form-note">Or call <a href="tel:+260978176858">+260 978176858</a> for direct reservations.</p>
         </form>
@@ -568,6 +609,7 @@
         <h4>Contact Person</h4>
         <p>Masozi Kamanga</p>
         <p><a href="tel:+260978176858">+260 978176858</a></p>
+        <p style="margin-top: 1.2rem;"><a href="#adminModal" id="hostPortalBtn" style="opacity: 0.6; font-size: 0.85rem;"><i class="fa-solid fa-lock"></i> Host Portal</a></p>
       </div>
     </div>
     <p class="copyright">&copy; <span id="year"></span> M KAY APARTMENTS LTD. All rights reserved.</p>
@@ -579,6 +621,123 @@
     <img id="lightboxImage" src="" alt="Gallery preview">
     <p id="lightboxCaption"></p>
     <button class="lightbox-nav next" id="lightboxNext" aria-label="Next image"><i class="fa-solid fa-chevron-right"></i></button>
+  </div>
+
+  <!-- Host Control Panel Modal -->
+  <div class="admin-modal" id="adminModal" aria-hidden="true">
+    <div class="admin-modal-content">
+      <div class="admin-modal-header">
+        <h2><i class="fa-solid fa-sliders"></i> Host Control Panel</h2>
+        <button class="admin-modal-close" id="adminModalClose" aria-label="Close admin panel"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <!-- PIN Login Container -->
+      <div class="admin-login-box" id="adminLoginBox">
+        <p>Enter PIN to access host settings (Default: <strong>1234</strong>):</p>
+        <div class="pin-input-row">
+          <input type="password" id="adminPin" placeholder="••••" maxlength="4">
+          <button id="adminLoginBtn" class="btn btn-sm">Access</button>
+        </div>
+        <p id="adminLoginError" class="error-msg" style="display:none; color: #ff5252; font-weight: 600; margin-top: 0.5rem;"></p>
+      </div>
+
+      <!-- Dashboard Content (hidden initially) -->
+      <div class="admin-dashboard-tabs" id="adminDashboardContent" style="display:none;">
+        <nav class="admin-tabs-nav">
+          <button class="tab-btn active" data-tab="tab-seasons"><i class="fa-solid fa-tags"></i> Pricing & Seasons</button>
+          <button class="tab-btn" data-tab="tab-blocked"><i class="fa-solid fa-calendar-xmark"></i> Blocked Dates</button>
+          <button class="tab-btn" data-tab="tab-gallery"><i class="fa-solid fa-images"></i> Manage Gallery</button>
+          <button class="tab-btn" data-tab="tab-payments"><i class="fa-solid fa-credit-card"></i> Payments</button>
+        </nav>
+
+        <!-- Tab: Seasonal Pricing -->
+        <div class="admin-tab-panel active" id="tab-seasons">
+          <h3>Base Rate & High Season Prices</h3>
+          <div class="admin-form-row">
+            <label>Default Base Price (K per night)
+              <input type="number" id="adminBasePrice" min="1" step="100" placeholder="e.g. 2000">
+            </label>
+            <button id="saveBasePriceBtn" class="btn btn-sm" style="align-self: flex-end; margin-bottom: 0;">Save</button>
+          </div>
+          
+          <hr style="margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border);">
+          
+          <h4>Add Seasonal Price Rule</h4>
+          <div class="seasonal-rule-form">
+            <label>Month
+              <select id="ruleMonth">
+                <option value="0">January</option>
+                <option value="1">February</option>
+                <option value="2">March</option>
+                <option value="3">April</option>
+                <option value="4">May</option>
+                <option value="5">June</option>
+                <option value="6">July</option>
+                <option value="7">August</option>
+                <option value="8">September</option>
+                <option value="9">October</option>
+                <option value="10">November</option>
+                <option value="11">December</option>
+              </select>
+            </label>
+            <label>Custom Price (K per night)
+              <input type="number" id="rulePrice" min="1" step="100" placeholder="e.g. 2500">
+            </label>
+            <button id="addRuleBtn" class="btn btn-sm">Add Rule</button>
+          </div>
+
+          <h4 style="margin-top: 1.5rem;">Active Seasonal Rules</h4>
+          <div class="seasons-list" id="seasonsList">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab: Blocked Dates -->
+        <div class="admin-tab-panel" id="tab-blocked">
+          <h3>Block Reservation Dates</h3>
+          <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Select dates to block booking. Blocked dates show as unavailable on the visitor calendar.</p>
+          <div class="blocked-dates-form">
+            <label>Check-in / Start Date
+              <input type="date" id="blockStart">
+            </label>
+            <label>Check-out / End Date
+              <input type="date" id="blockEnd">
+            </label>
+            <button id="addBlockBtn" class="btn btn-sm">Block Range</button>
+          </div>
+          <h4 style="margin-top: 1.5rem;">Currently Blocked Ranges</h4>
+          <div class="blocked-list" id="blockedRangesList">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab: Upload Gallery -->
+        <div class="admin-tab-panel" id="tab-gallery">
+          <h3>Upload Apartment & Gallery Pictures</h3>
+          <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Upload pictures to display on the site. Images are auto-compressed to preserve browser space.</p>
+          <div class="upload-area">
+            <input type="file" id="galleryUploadInput" accept="image/*" multiple style="display:none;">
+            <button id="triggerUploadBtn" class="btn"><i class="fa-solid fa-cloud-arrow-up"></i> Select Image Files</button>
+            <div id="uploadStatusText" style="margin-top: 0.5rem; font-size: 0.85rem; font-weight: 600;"></div>
+          </div>
+          
+          <h4 style="margin-top: 1.5rem;">Custom Uploaded Images</h4>
+          <div class="custom-gallery-manager" id="customGalleryManager">
+            <!-- Rendered dynamically with delete controls -->
+          </div>
+        </div>
+
+        <!-- Tab: Payment Methods -->
+        <div class="admin-tab-panel" id="tab-payments">
+          <h3>Manage Payment Details</h3>
+          <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Enable or disable payment channels and edit account/number details displayed to clients.</p>
+          <div class="payment-settings-list" id="paymentSettingsList">
+            <!-- Rendered dynamically -->
+          </div>
+          <button id="savePaymentsBtn" class="btn" style="margin-top: 1.2rem; width: 100%;">Save Payment Configurations</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="script.js"></script>

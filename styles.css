@@ -1258,3 +1258,722 @@ textarea:focus {
     bottom: 0.8rem;
   }
 }
+
+/* ==========================================================================
+   INTERACTIVE CALENDAR WIDGET
+   ========================================================================== */
+.calendar-widget {
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.3rem;
+  margin-top: 1.5rem;
+  box-shadow: 0 8px 32px rgba(20, 16, 11, 0.08);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.1rem;
+}
+
+.calendar-header h3 {
+  font-size: 1.15rem;
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+}
+
+.calendar-nav-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all var(--transition);
+}
+
+.calendar-nav-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 2px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  position: relative;
+  background: transparent;
+  color: var(--text);
+}
+
+.calendar-day.empty {
+  cursor: default;
+  pointer-events: none;
+}
+
+.calendar-day-price {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+/* Hover and active states */
+.calendar-day:not(.empty):not(.blocked):hover {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+/* Seasonal variations */
+.calendar-day.holiday-season {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+.calendar-day.holiday-season .calendar-day-price {
+  color: var(--accent-strong);
+}
+
+/* Selected booking ranges */
+.calendar-day.range-start,
+.calendar-day.range-end {
+  background: var(--accent-strong) !important;
+  color: #17120d !important;
+  border-color: var(--accent-strong) !important;
+}
+.calendar-day.range-start .calendar-day-price,
+.calendar-day.range-end .calendar-day-price {
+  color: #17120d !important;
+}
+
+.calendar-day.range-mid {
+  background: color-mix(in srgb, var(--accent) 30%, transparent) !important;
+}
+
+/* Blocked state */
+.calendar-day.blocked {
+  text-decoration: line-through;
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.05);
+}
+body.dark-theme .calendar-day.blocked {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1.1rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--muted);
+  justify-content: center;
+  border-top: 1px solid var(--border);
+  padding-top: 0.8rem;
+}
+
+.calendar-legend div {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.legend-dot.standard {
+  border: 1px solid var(--border);
+}
+
+.legend-dot.holiday {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.legend-dot.blocked {
+  background: rgba(0, 0, 0, 0.2);
+  text-decoration: line-through;
+}
+body.dark-theme .legend-dot.blocked {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================================================================
+   DYNAMIC PRICE BREAKDOWN CARD
+   ========================================================================== */
+.price-breakdown-card {
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 1.1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  animation: fade-up 0.3s ease;
+}
+
+.price-breakdown-card h4 {
+  font-size: 1.05rem;
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+  color: var(--accent-strong);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.price-breakdown-card h4::before {
+  content: "\f156";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+}
+
+#breakdownDetails {
+  font-size: 0.88rem;
+  color: var(--muted);
+  display: grid;
+  gap: 0.3rem;
+}
+
+#breakdownDetails div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.breakdown-total {
+  margin-top: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.1rem;
+}
+
+.breakdown-total span {
+  font-weight: 700;
+}
+
+.breakdown-total strong {
+  color: var(--accent-strong);
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+
+/* ==========================================================================
+   PAYMENT METHOD SELECTOR
+   ========================================================================== */
+.payment-method-section {
+  margin-top: 1.3rem;
+  margin-bottom: 1.3rem;
+}
+
+.payment-method-section h4 {
+  font-size: 1.05rem;
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  margin-bottom: 0.7rem;
+}
+
+.payment-methods-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.6rem;
+}
+
+.payment-method-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  background: var(--surface);
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.payment-method-card i {
+  font-size: 1.35rem;
+  color: var(--muted);
+  transition: color 0.25s ease;
+}
+
+.payment-method-card span {
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+/* Active styles matching brand networks */
+.payment-method-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+.payment-method-card.active {
+  border-width: 2px;
+  transform: translateY(-2px);
+}
+
+/* Brand configurations */
+.payment-method-card[data-method="mtn"].active {
+  border-color: #ffcc00;
+  box-shadow: 0 4px 12px rgba(255, 204, 0, 0.25);
+  background: color-mix(in srgb, #ffcc00 8%, var(--surface));
+}
+.payment-method-card[data-method="mtn"].active i {
+  color: #e6b800;
+}
+
+.payment-method-card[data-method="airtel"].active {
+  border-color: #ff0000;
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.15);
+  background: color-mix(in srgb, #ff0000 6%, var(--surface));
+}
+.payment-method-card[data-method="airtel"].active i {
+  color: #ff0000;
+}
+
+.payment-method-card[data-method="fnb"].active {
+  border-color: #00a896;
+  box-shadow: 0 4px 12px rgba(0, 168, 150, 0.2);
+  background: color-mix(in srgb, #00a896 8%, var(--surface));
+}
+.payment-method-card[data-method="fnb"].active i {
+  color: #00a896;
+}
+
+.payment-method-card[data-method="card"].active {
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(199, 154, 74, 0.25);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+.payment-method-card[data-method="card"].active i {
+  color: var(--accent-strong);
+}
+
+.payment-method-card[data-method="cash"].active {
+  border-color: var(--text);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: color-mix(in srgb, var(--text) 6%, var(--surface));
+}
+.payment-method-card[data-method="cash"].active i {
+  color: var(--text);
+}
+
+.payment-instructions {
+  margin-top: 0.85rem;
+  background: color-mix(in srgb, var(--surface-soft) 40%, var(--surface));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.9rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text);
+  animation: fade-up 0.35s ease;
+}
+
+.payment-instructions strong {
+  color: var(--accent-strong);
+}
+
+/* ==========================================================================
+   HOST CONTROL PANEL MODAL
+   ========================================================================== */
+.admin-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 150;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.admin-modal.active {
+  display: flex;
+}
+
+.admin-modal-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: min(720px, 94vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-modal-header h2 {
+  font-size: 1.35rem;
+  font-family: "Playfair Display", serif;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.admin-modal-header h2 i {
+  color: var(--accent);
+}
+
+.admin-modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 1.3rem;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--transition);
+}
+
+.admin-modal-close:hover {
+  opacity: 1;
+}
+
+/* PIN login view */
+.admin-login-box {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.pin-input-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.pin-input-row input {
+  width: 110px;
+  text-align: center;
+  font-size: 1.4rem;
+  letter-spacing: 0.4em;
+  padding: 0.5rem;
+}
+
+.pin-input-row button {
+  padding: 0.65rem 1.3rem;
+}
+
+/* Dashboard Tabs Navigation */
+.admin-dashboard-tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.admin-tabs-nav {
+  display: flex;
+  background: color-mix(in srgb, var(--surface-soft) 40%, var(--surface));
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.tab-btn {
+  flex: 1;
+  min-width: 120px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  padding: 1rem 0.5rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+  color: var(--accent-strong);
+  border-bottom-color: var(--accent);
+  background: var(--surface);
+}
+
+/* Tab Panels */
+.admin-tab-panel {
+  padding: 1.5rem;
+  display: none;
+  overflow-y: auto;
+}
+
+.admin-tab-panel.active {
+  display: block;
+}
+
+.admin-tab-panel h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.admin-tab-panel h4 {
+  font-size: 1.05rem;
+  margin-bottom: 0.8rem;
+}
+
+/* Host form styles */
+.admin-form-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.admin-form-row label {
+  flex: 1;
+}
+
+.seasonal-rule-form,
+.blocked-dates-form {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr auto;
+  gap: 0.75rem;
+  align-items: flex-end;
+  background: color-mix(in srgb, var(--surface-soft) 25%, var(--surface));
+  border: 1px solid var(--border);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+}
+
+/* Rules / Lists management items */
+.seasons-list,
+.blocked-list {
+  display: grid;
+  gap: 0.55rem;
+  margin-bottom: 1.5rem;
+}
+
+.season-item,
+.blocked-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: color-mix(in srgb, var(--surface-soft) 20%, var(--surface));
+  border: 1px solid var(--border);
+  padding: 0.65rem 0.95rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.season-item span:first-child {
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.btn-delete-rule {
+  background: transparent;
+  border: none;
+  color: #ff5252;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 1rem;
+  transition: transform 0.2s ease;
+}
+
+.btn-delete-rule:hover {
+  transform: scale(1.15);
+}
+
+/* Upload Panel Styles */
+.upload-area {
+  border: 2px dashed var(--border);
+  padding: 2.2rem 1rem;
+  text-align: center;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface-soft) 12%, var(--surface));
+  transition: border-color var(--transition);
+  margin-bottom: 1rem;
+}
+
+.upload-area:hover {
+  border-color: var(--accent);
+}
+
+/* Custom Gallery display in Admin Panel */
+.custom-gallery-manager {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.custom-gallery-card {
+  position: relative;
+  aspect-ratio: 1.1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.custom-gallery-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btn-delete-image {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(20, 18, 14, 0.85);
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #ff5252;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 0.88rem;
+  transition: all 0.2s ease;
+}
+
+.btn-delete-image:hover {
+  background: #ff5252;
+  color: #fff;
+  transform: scale(1.05);
+}
+
+/* Payment settings styling */
+.payment-settings-item {
+  background: color-mix(in srgb, var(--surface-soft) 25%, var(--surface));
+  border: 1px solid var(--border);
+  padding: 1.1rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.payment-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.payment-settings-header span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Slide switch styles */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 22px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider-switch {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: var(--border);
+  transition: .3s;
+  border-radius: 34px;
+}
+
+.slider-switch:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+
+input:checked + .slider-switch {
+  background-color: var(--accent);
+}
+
+input:focus + .slider-switch {
+  box-shadow: 0 0 1px var(--accent);
+}
+
+input:checked + .slider-switch:before {
+  transform: translateX(22px);
+}
+
+@media (max-width: 680px) {
+  .seasonal-rule-form,
+  .blocked-dates-form {
+    grid-template-columns: 1fr;
+  }
+}
+
