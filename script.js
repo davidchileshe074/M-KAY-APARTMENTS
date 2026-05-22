@@ -318,8 +318,24 @@
             state[key] = defaultState[key];
           }
         }
-        // Ensure image and icon properties are merged from defaultState
+
+        // Migrate old "card" method to separate Visa and Mastercard
         if (state.paymentMethods && Array.isArray(state.paymentMethods)) {
+          const cardIdx = state.paymentMethods.findIndex(m => m.id === "card");
+          if (cardIdx !== -1) {
+            const visaDef = defaultState.paymentMethods.find(m => m.id === "visa");
+            const mcDef = defaultState.paymentMethods.find(m => m.id === "mastercard");
+            state.paymentMethods.splice(cardIdx, 1, visaDef, mcDef);
+          }
+
+          // Ensure any new default methods are present
+          defaultState.paymentMethods.forEach(defMethod => {
+            if (!state.paymentMethods.find(m => m.id === defMethod.id)) {
+              state.paymentMethods.push(defMethod);
+            }
+          });
+
+          // Merge image and icon properties from defaults
           state.paymentMethods.forEach(method => {
             const defMethod = defaultState.paymentMethods.find(m => m.id === method.id);
             if (defMethod) {
@@ -328,6 +344,8 @@
             }
           });
         }
+
+        saveState();
       } catch (e) {
         state = defaultState;
       }
