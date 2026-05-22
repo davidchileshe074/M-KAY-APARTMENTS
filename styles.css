@@ -1532,13 +1532,13 @@ body.dark-theme .legend-dot.blocked {
 }
 
 .payment-method-card i {
-  font-size: 1.35rem;
+  font-size: 1.8rem;
   color: var(--muted);
   transition: color 0.25s ease;
 }
 
 .payment-method-card img {
-  height: 24px;
+  height: 38px;
   width: auto;
   max-width: 100%;
   object-fit: contain;
@@ -1589,13 +1589,22 @@ body.dark-theme .legend-dot.blocked {
   color: #00a896;
 }
 
-.payment-method-card[data-method="card"].active {
-  border-color: var(--accent);
-  box-shadow: 0 4px 12px rgba(199, 154, 74, 0.25);
-  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+.payment-method-card[data-method="visa"].active {
+  border-color: #1a1f71;
+  box-shadow: 0 4px 12px rgba(26, 31, 113, 0.2);
+  background: color-mix(in srgb, #1a1f71 6%, var(--surface));
 }
-.payment-method-card[data-method="card"].active i {
-  color: var(--accent-strong);
+.payment-method-card[data-method="visa"].active i {
+  color: #1a1f71;
+}
+
+.payment-method-card[data-method="mastercard"].active {
+  border-color: #eb001b;
+  box-shadow: 0 4px 12px rgba(235, 0, 27, 0.2);
+  background: color-mix(in srgb, #ff5f00 6%, var(--surface));
+}
+.payment-method-card[data-method="mastercard"].active i {
+  color: #eb001b;
 }
 
 .payment-method-card[data-method="cash"].active {
@@ -1932,9 +1941,9 @@ body.dark-theme .legend-dot.blocked {
 }
 
 .payment-settings-header span img {
-  height: 20px;
+  height: 28px;
   width: auto;
-  max-width: 60px;
+  max-width: 80px;
   object-fit: contain;
 }
 

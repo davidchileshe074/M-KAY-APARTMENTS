@@ -298,8 +298,9 @@
     paymentMethods: [
       { id: "mtn", name: "MTN Mobile Money", icon: "fa-solid fa-mobile-screen-button", image: "payments icon/mtn-new-logo.svg", enabled: true, details: "Send to MTN Mobile Money:\nMerchant Code / Number: +260 764336304\nName: M Kay Apartments Ltd" },
       { id: "airtel", name: "Airtel Money", icon: "fa-solid fa-mobile-screen-button", image: "payments icon/Airtel_logo-02.png", enabled: true, details: "Send to Airtel Money:\nNumber: +260 978176858\nName: Masozi Kamanga" },
-      { id: "fnb", name: "FNB Bank Transfer", icon: "fa-solid fa-building-columns", enabled: true, details: "Bank: First National Bank (FNB)\nAccount: 62981726354\nBranch: Livingstone\nName: M KAY APARTMENTS LTD" },
-      { id: "card", name: "Credit/Debit Card", icon: "fa-solid fa-credit-card", enabled: true, details: "We will email/WhatsApp you a secure payment link to pay with your card." },
+      { id: "fnb", name: "FNB Bank Transfer", icon: "fa-solid fa-building-columns", image: "payments icon/FNB-Logo.png", enabled: true, details: "Bank: First National Bank (FNB)\nAccount: 62981726354\nBranch: Livingstone\nName: M KAY APARTMENTS LTD" },
+      { id: "visa", name: "Visa", icon: "fa-brands fa-cc-visa", image: "payments icon/Visa_Inc-_idDUM8TcN7_1.png", enabled: true, details: "We will email/WhatsApp you a secure payment link to pay with your Visa card." },
+      { id: "mastercard", name: "Mastercard", icon: "fa-brands fa-cc-mastercard", image: "payments icon/Mastercard_Symbol_1.png", enabled: true, details: "We will email/WhatsApp you a secure payment link to pay with your Mastercard." },
       { id: "cash", name: "Cash on Arrival", icon: "fa-solid fa-money-bill-wave", enabled: true, details: "Pay cash in Zambian Kwacha (K) or USD upon arrival at check-in." }
     ],
     customPhotos: [] // Array of { src: 'data:image/jpeg;base64...', caption: '...' }
