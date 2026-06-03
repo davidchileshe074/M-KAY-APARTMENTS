@@ -1,0 +1,340 @@
+{
+  "pin": "1234",
+  "basePrice": 2000,
+  "seasonalRules": [
+    {
+      "month": "8",
+      "price": 2500,
+      "enabled": true
+    }
+  ],
+  "blockedRanges": [],
+  "paymentMethods": [
+    {
+      "id": "mtn",
+      "name": "MTN Mobile Money",
+      "icon": "fa-solid fa-mobile-screen-button",
+      "image": "payments icon/mtn-new-logo.svg",
+      "enabled": true,
+      "details": "Send to MTN Mobile Money:\nMerchant Code / Number: +260 764336304\nName: M Kay Apartments Ltd"
+    },
+    {
+      "id": "airtel",
+      "name": "Airtel Money",
+      "icon": "fa-solid fa-mobile-screen-button",
+      "image": "payments icon/Airtel_logo-02.png",
+      "enabled": true,
+      "details": "Send to Airtel Money:\nNumber: +260 978176858\nName: Masozi Kamanga"
+    },
+    {
+      "id": "fnb",
+      "name": "FNB Bank Transfer",
+      "icon": "fa-solid fa-building-columns",
+      "image": "payments icon/FNB-Logo.png",
+      "enabled": true,
+      "details": "Bank: First National Bank (FNB)\nAccount: 62981726354\nBranch: Livingstone\nName: M KAY APARTMENTS LTD"
+    },
+    {
+      "id": "visa",
+      "name": "Visa",
+      "icon": "fa-brands fa-cc-visa",
+      "image": "payments icon/Visa_Inc-_idDUM8TcN7_1.png",
+      "enabled": true,
+      "details": "We will email/WhatsApp you a secure payment link to pay with your Visa card."
+    },
+    {
+      "id": "mastercard",
+      "name": "Mastercard",
+      "icon": "fa-brands fa-cc-mastercard",
+      "image": "payments icon/Mastercard_Symbol_1.png",
+      "enabled": true,
+      "details": "We will email/WhatsApp you a secure payment link to pay with your Mastercard."
+    },
+    {
+      "id": "cash",
+      "name": "Cash on Arrival",
+      "icon": "fa-solid fa-money-bill-wave",
+      "enabled": true,
+      "details": "Pay cash in Zambian Kwacha (K) or USD upon arrival at check-in."
+    }
+  ],
+  "customPhotos": [],
+  "hero": {
+    "kicker": "Livingstone, Zambia | Dambwa North Extension",
+    "headline": "Luxury Meets Comfort in Livingstone",
+    "subtitle": "Experience modern apartments with Starlink internet, backup power, air-conditioned rooms, and unforgettable comfort.",
+    "statPills": [
+      {
+        "icon": "fa-solid fa-shield-halved",
+        "text": "24/7 Security"
+      },
+      {
+        "icon": "fa-solid fa-wifi",
+        "text": "Starlink WiFi"
+      },
+      {
+        "icon": "fa-solid fa-bolt",
+        "text": "Backup Power"
+      },
+      {
+        "icon": "fa-solid fa-hotel",
+        "text": "Luxury Apartments"
+      }
+    ]
+  },
+  "about": {
+    "title": "Premium Hospitality for Every Traveler",
+    "paragraphs": [
+      "M KAY APARTMENTS LTD offers modern, comfortable, and affordable luxury apartments in the heart of Livingstone, Zambia.",
+      "Designed for travelers, tourists, families, and business guests, our apartments provide the perfect blend of comfort, convenience, security, and entertainment to make your stay memorable."
+    ],
+    "features": [
+      {
+        "icon": "fa-solid fa-building",
+        "text": "Modern apartments"
+      },
+      {
+        "icon": "fa-solid fa-leaf",
+        "text": "Peaceful environment"
+      },
+      {
+        "icon": "fa-solid fa-satellite-dish",
+        "text": "Reliable internet"
+      },
+      {
+        "icon": "fa-solid fa-map-location-dot",
+        "text": "Adventure city experience"
+      },
+      {
+        "icon": "fa-solid fa-heart",
+        "text": "Personalized hospitality"
+      }
+    ],
+    "images": [
+      "assets/628243551_122164141748841441_551392952465463934_n.jpg",
+      "assets/629235778_122164141736841441_5726096542652318515_n.jpg",
+      "assets/557449767_122144858396841441_3476021069714433910_n.jpg"
+    ]
+  },
+  "apartments": [
+    {
+      "name": "Executive Comfort Suite",
+      "priceLabel": "K2,000 / night",
+      "badge": "Available Tonight",
+      "features": [
+        "Air-conditioned rooms",
+        "Smart TV with Netflix",
+        "Starlink high-speed internet",
+        "Modern kitchen and clean bathroom"
+      ],
+      "images": [
+        "assets/630362444_122164141550841441_5390268530041289102_n.jpg",
+        "assets/628303594_122164141568841441_8306337482201048236_n.jpg",
+        "assets/629226266_122164141592841441_2117617871875713527_n.jpg"
+      ]
+    },
+    {
+      "name": "Family Premium Apartment",
+      "priceLabel": "K2,000 / night",
+      "badge": "High Demand",
+      "features": [
+        "Spacious family-friendly living area",
+        "Comfortable beds and fresh interiors",
+        "Backup power and hot water",
+        "Secure and quiet environment"
+      ],
+      "images": [
+        "assets/628390692_122164141604841441_719272422453125891_n.jpg",
+        "assets/628418418_122164141634841441_8295295334317346115_n.jpg",
+        "assets/629222782_122164141676841441_4548154573022666384_n.jpg"
+      ]
+    },
+    {
+      "name": "Signature Getaway Apartment",
+      "priceLabel": "K2,000 / night",
+      "badge": "Ready to Book",
+      "features": [
+        "Luxury finishes and modern furniture",
+        "Full kitchen and dining convenience",
+        "Strong WiFi for remote work",
+        "Ideal for couples and business travelers"
+      ],
+      "images": [
+        "assets/629248919_122164141658841441_2851255111157590005_n.jpg",
+        "assets/629254608_122164141694841441_8967582750012875948_n.jpg",
+        "assets/627265331_122164141766841441_3315502584912791369_n.jpg"
+      ]
+    }
+  ],
+  "amenities": [
+    {
+      "icon": "fa-solid fa-wifi",
+      "name": "Starlink WiFi"
+    },
+    {
+      "icon": "fa-solid fa-tv",
+      "name": "Netflix Entertainment"
+    },
+    {
+      "icon": "fa-solid fa-bolt",
+      "name": "Backup Power Supply"
+    },
+    {
+      "icon": "fa-regular fa-snowflake",
+      "name": "Air Conditioning"
+    },
+    {
+      "icon": "fa-solid fa-shield-halved",
+      "name": "24/7 Security"
+    },
+    {
+      "icon": "fa-solid fa-couch",
+      "name": "Spacious Rooms"
+    },
+    {
+      "icon": "fa-solid fa-chair",
+      "name": "Modern Furniture"
+    },
+    {
+      "icon": "fa-solid fa-square-parking",
+      "name": "Free Parking"
+    },
+    {
+      "icon": "fa-solid fa-temperature-high",
+      "name": "Hot Water"
+    },
+    {
+      "icon": "fa-solid fa-kitchen-set",
+      "name": "Fully Equipped Kitchens"
+    }
+  ],
+  "activities": [
+    {
+      "title": "Game Drives",
+      "image": "assets/585371601_122152960682841441_2669600545233216027_n.jpg"
+    },
+    {
+      "title": "Boat Cruises",
+      "image": "assets/627731228_122164141580841441_3077534502820487343_n.jpg"
+    },
+    {
+      "title": "Victoria Falls Tours",
+      "image": "assets/627241197_122164141622841441_6889720896113666913_n.jpg"
+    },
+    {
+      "title": "City Tours",
+      "image": "assets/626759984_122164141652841441_2056566267652207435_n.jpg"
+    },
+    {
+      "title": "Safari Experiences",
+      "image": "assets/625948610_122164141538841441_6473730660049658689_n.jpg"
+    },
+    {
+      "title": "Sunset Cruises",
+      "image": "assets/557658039_122144858690841441_5770544111404363952_n.jpg"
+    },
+    {
+      "title": "Local Cultural Experiences",
+      "image": "assets/556829429_122144858678841441_534708018322283_n.jpg"
+    }
+  ],
+  "whyUs": {
+    "points": [
+      "Affordable luxury",
+      "Prime Livingstone location",
+      "Reliable Starlink internet",
+      "Uninterrupted power supply",
+      "Comfortable atmosphere",
+      "Tourist-friendly services",
+      "Secure environment",
+      "Modern amenities"
+    ],
+    "counters": [
+      {
+        "target": 1200,
+        "suffix": "+",
+        "label": "Guests Hosted"
+      },
+      {
+        "target": 320,
+        "suffix": "+",
+        "label": "5-Star Experiences"
+      },
+      {
+        "target": 5,
+        "suffix": " min",
+        "label": "Average WhatsApp Reply"
+      },
+      {
+        "target": 24,
+        "suffix": "/7",
+        "label": "Security & Support"
+      }
+    ]
+  },
+  "testimonials": [
+    {
+      "name": "Emily & Noah - UK Travelers",
+      "rating": 5,
+      "text": "\"A peaceful and luxurious base in Livingstone. Fast WiFi, clean apartment, and very responsive host support.\"",
+      "image": "assets/557232425_122144858444841441_4036133276519688224_n.jpg"
+    },
+    {
+      "name": "Tendai - Business Visitor",
+      "rating": 5,
+      "text": "\"Perfect for work trips. Backup power and Starlink internet made meetings smooth throughout my stay.\"",
+      "image": "assets/558814859_122144858540841441_8247524261943621774_n.jpg"
+    },
+    {
+      "name": "Mwila Family - Lusaka",
+      "rating": 5,
+      "text": "\"The apartment felt secure, spacious, and welcoming. Great location for visiting Victoria Falls and city spots.\"",
+      "image": "assets/629226266_122164141592841441_2117617871875713527_n.jpg"
+    },
+    {
+      "name": "Rudo & Paul - Couple Getaway",
+      "rating": 5,
+      "text": "\"Romantic, modern, and relaxing. Exactly what we wanted for a weekend escape in Livingstone.\"",
+      "image": "assets/630362444_122164141550841441_5390268530041289102_n.jpg"
+    }
+  ],
+  "faq": [
+    {
+      "question": "How much is the apartment per night?",
+      "answer": "<p>Our standard rate starts from <strong>K2,000 per night</strong>. Contact us for long-stay offers and availability.</p>"
+    },
+    {
+      "question": "Do you provide WiFi?",
+      "answer": "<p>Yes. We provide reliable <strong>Starlink high-speed internet</strong> throughout the apartments.</p>"
+    },
+    {
+      "question": "Is there backup power?",
+      "answer": "<p>Yes. We have <strong>backup power supply</strong> to keep your stay uninterrupted.</p>"
+    },
+    {
+      "question": "Is Netflix included?",
+      "answer": "<p>Yes. Apartments include smart TV entertainment with Netflix access.</p>"
+    },
+    {
+      "question": "How do I make a reservation?",
+      "answer": "<p>You can reserve through our booking form, WhatsApp, or by phone call.</p>"
+    },
+    {
+      "question": "Are activities included?",
+      "answer": "<p>Activities are optional and can be arranged as add-ons based on your preferred travel experience.</p>"
+    },
+    {
+      "question": "Is security available?",
+      "answer": "<p>Absolutely. We prioritize a <strong>safe, secure, and peaceful environment</strong> with 24/7 security support.</p>"
+    }
+  ],
+  "contact": {
+    "phone": "+260978176858",
+    "whatsapp": "260764336304",
+    "email": "kamangamasozi495@gmail.com",
+    "facebook": "https://www.facebook.com/",
+    "address": "Dambwa North Extension<br>Livingstone, Zambia, 60010",
+    "contactPerson": "Masozi Kamanga",
+    "footerDescription": "Luxury and comfort in Livingstone, Zambia for tourists, couples, families, and business travelers."
+  }
+}

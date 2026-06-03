@@ -644,14 +644,143 @@
       <!-- Dashboard Content (hidden initially) -->
       <div class="admin-dashboard-tabs" id="adminDashboardContent" style="display:none;">
         <nav class="admin-tabs-nav">
-          <button class="tab-btn active" data-tab="tab-seasons"><i class="fa-solid fa-tags"></i> Pricing & Seasons</button>
+          <button class="tab-btn active" data-tab="tab-hero"><i class="fa-solid fa-house"></i> Hero</button>
+          <button class="tab-btn" data-tab="tab-about"><i class="fa-solid fa-circle-info"></i> About</button>
+          <button class="tab-btn" data-tab="tab-cms-apartments"><i class="fa-solid fa-building"></i> Apartments</button>
+          <button class="tab-btn" data-tab="tab-amenities"><i class="fa-solid fa-star"></i> Amenities</button>
+          <button class="tab-btn" data-tab="tab-activities"><i class="fa-solid fa-person-hiking"></i> Activities</button>
+          <button class="tab-btn" data-tab="tab-reviews"><i class="fa-solid fa-comment"></i> Reviews</button>
+          <button class="tab-btn" data-tab="tab-faq"><i class="fa-solid fa-circle-question"></i> FAQ</button>
+          <button class="tab-btn" data-tab="tab-contact"><i class="fa-solid fa-address-book"></i> Contact & Footer</button>
+          <button class="tab-btn" data-tab="tab-seasons"><i class="fa-solid fa-tags"></i> Pricing & Seasons</button>
           <button class="tab-btn" data-tab="tab-blocked"><i class="fa-solid fa-calendar-xmark"></i> Blocked Dates</button>
           <button class="tab-btn" data-tab="tab-gallery"><i class="fa-solid fa-images"></i> Manage Gallery</button>
           <button class="tab-btn" data-tab="tab-payments"><i class="fa-solid fa-credit-card"></i> Payments</button>
+          <button class="tab-btn" data-tab="tab-settings"><i class="fa-solid fa-gear"></i> Settings</button>
         </nav>
 
+        </nav>
+
+        <!-- CMS Tab: Hero -->
+        <div class="admin-tab-panel active" id="tab-hero">
+          <h3>Hero Section</h3>
+          <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Edit the main headline and introduction text.</p>
+          <div class="admin-form-row" style="flex-direction: column; align-items: flex-start; max-width: 600px; gap: 1rem;">
+            <label style="width: 100%;">Location / Kicker
+              <input type="text" id="heroKickerInput" style="width: 100%;">
+            </label>
+            <label style="width: 100%;">Main Headline
+              <input type="text" id="heroHeadlineInput" style="width: 100%;">
+            </label>
+            <label style="width: 100%;">Subtitle / Description
+              <textarea id="heroSubtitleInput" rows="3" style="width: 100%; resize: vertical;"></textarea>
+            </label>
+          </div>
+          <h4 style="margin-top: 1.5rem;">Stat Pills</h4>
+          <div id="heroStatsList" class="repeater-list"></div>
+          <button id="addHeroStatBtn" class="btn btn-sm" style="margin-top: 0.5rem;"><i class="fa-solid fa-plus"></i> Add Stat</button>
+          <button id="saveHeroBtn" class="btn" style="margin-top: 1.2rem; width: 100%;">Save Hero Changes</button>
+        </div>
+
+        <!-- CMS Tab: About -->
+        <div class="admin-tab-panel" id="tab-about">
+          <h3>About Section</h3>
+          <div class="admin-form-row" style="flex-direction: column; align-items: flex-start; max-width: 600px; gap: 1rem;">
+            <label style="width: 100%;">Title
+              <input type="text" id="aboutTitleInput" style="width: 100%;">
+            </label>
+            <label style="width: 100%;">Paragraph 1
+              <textarea id="aboutP1Input" rows="3" style="width: 100%; resize: vertical;"></textarea>
+            </label>
+            <label style="width: 100%;">Paragraph 2
+              <textarea id="aboutP2Input" rows="3" style="width: 100%; resize: vertical;"></textarea>
+            </label>
+          </div>
+          <h4 style="margin-top: 1.5rem;">Feature Points</h4>
+          <div id="aboutFeaturesList" class="repeater-list"></div>
+          <button id="addAboutFeatureBtn" class="btn btn-sm" style="margin-top: 0.5rem;"><i class="fa-solid fa-plus"></i> Add Feature</button>
+          
+          <h4 style="margin-top: 1.5rem;">Images</h4>
+          <div class="admin-form-row" style="flex-direction: column; align-items: flex-start; max-width: 600px; gap: 0.5rem;">
+            <label style="width: 100%;">Image 1 URL <input type="text" id="aboutImg1Input" style="width: 100%;"></label>
+            <label style="width: 100%;">Image 2 URL <input type="text" id="aboutImg2Input" style="width: 100%;"></label>
+            <label style="width: 100%;">Image 3 URL <input type="text" id="aboutImg3Input" style="width: 100%;"></label>
+          </div>
+          <button id="saveAboutBtn" class="btn" style="margin-top: 1.2rem; width: 100%;">Save About Changes</button>
+        </div>
+
+        <!-- CMS Tab: Apartments -->
+        <div class="admin-tab-panel" id="tab-cms-apartments">
+          <h3>Manage Apartments</h3>
+          <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Add, edit, or remove apartments.</p>
+          <div id="apartmentsList"></div>
+          <button id="addApartmentBtn" class="btn btn-sm" style="margin-top: 0.5rem;"><i class="fa-solid fa-plus"></i> Add New Apartment</button>
+          <button id="saveApartmentsBtn" class="btn" style="margin-top: 1.2rem; width: 100%;">Save Apartments</button>
+        </div>
+
+        <!-- CMS Tab: Amenities -->
+        <div class="admin-tab-panel" id="tab-amenities">
+          <h3>Manage Amenities</h3>
+          <div id="amenitiesList" class="repeater-list"></div>
+          <button id="addAmenityBtn" class="btn btn-sm" style="margin-top: 0.5rem;"><i class="fa-solid fa-plus"></i> Add Amenity</button>
+          <button id="saveAmenitiesBtn" class="btn" style="margin-top: 1.2rem; width: 100%;">Save Amenities</button>
+        </div>
+
+        <!-- CMS Tab: Activities -->
+        <div class="admin-tab-panel" id="tab-activities">
+          <h3>Manage Activities</h3>
+          <div id="activitiesList" class="repeater-list"></div>
+          <button id="addActivityBtn" class="btn btn-sm" style="margin-top: 0.5rem;"><i class="fa-solid fa-plus"></i> Add Activity</button>
+          <button id="saveActivitiesBtn" class="btn" style="margin-top: 1.2rem; width: 100%;">Save Activities</button>
+        </div>
+
+        <!-- CMS Tab: Reviews -->
+        <div class="admin-tab-panel" id="tab-reviews">
+          <h3>Manage Reviews</h3>
+          <div id="reviewsList" class="repeater-list"></div>
+          <button id="addReviewBtn" class="btn btn-sm" style="margin-top: 0.5rem;"><i class="fa-solid fa-plus"></i> Add Review</button>
+          <button id="saveReviewsBtn" class="btn" style="margin-top: 1.2rem; width: 100%;">Save Reviews</button>
+        </div>
+
+        <!-- CMS Tab: FAQ -->
+        <div class="admin-tab-panel" id="tab-faq">
+          <h3>Manage FAQ</h3>
+          <div id="faqList" class="repeater-list"></div>
+          <button id="addFaqBtn" class="btn btn-sm" style="margin-top: 0.5rem;"><i class="fa-solid fa-plus"></i> Add FAQ</button>
+          <button id="saveFaqBtn" class="btn" style="margin-top: 1.2rem; width: 100%;">Save FAQ</button>
+        </div>
+
+        <!-- CMS Tab: Contact & Footer -->
+        <div class="admin-tab-panel" id="tab-contact">
+          <h3>Contact Info & Footer</h3>
+          <div class="admin-form-row" style="flex-direction: column; align-items: flex-start; max-width: 600px; gap: 1rem;">
+            <label style="width: 100%;">Phone Number
+              <input type="text" id="contactPhoneInput" style="width: 100%;">
+            </label>
+            <label style="width: 100%;">WhatsApp Number (Format: 260...)
+              <input type="text" id="contactWhatsappInput" style="width: 100%;">
+            </label>
+            <label style="width: 100%;">Email
+              <input type="email" id="contactEmailInput" style="width: 100%;">
+            </label>
+            <label style="width: 100%;">Facebook Link
+              <input type="url" id="contactFacebookInput" style="width: 100%;">
+            </label>
+            <label style="width: 100%;">Address
+              <textarea id="contactAddressInput" rows="2" style="width: 100%; resize: vertical;"></textarea>
+            </label>
+            <label style="width: 100%;">Contact Person
+              <input type="text" id="contactPersonInput" style="width: 100%;">
+            </label>
+            <label style="width: 100%;">Footer Description
+              <textarea id="contactFooterInput" rows="2" style="width: 100%; resize: vertical;"></textarea>
+            </label>
+          </div>
+          <button id="saveContactBtn" class="btn" style="margin-top: 1.2rem; width: 100%;">Save Contact Details</button>
+        </div>
+
         <!-- Tab: Seasonal Pricing -->
-        <div class="admin-tab-panel active" id="tab-seasons">
+        <div class="admin-tab-panel" id="tab-seasons">
           <h3>Base Rate & High Season Prices</h3>
           <div class="admin-form-row">
             <label>Default Base Price (K per night)
@@ -735,6 +864,25 @@
             <!-- Rendered dynamically -->
           </div>
           <button id="savePaymentsBtn" class="btn" style="margin-top: 1.2rem; width: 100%;">Save Payment Configurations</button>
+        </div>
+        <!-- Tab: Settings & Security -->
+        <div class="admin-tab-panel" id="tab-settings">
+          <h3>Security Settings</h3>
+          <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Change the PIN used to access this Host Control Panel.</p>
+          
+          <div class="admin-form-row" style="flex-direction: column; align-items: flex-start; max-width: 400px; gap: 1rem;">
+            <label style="width: 100%;">Current PIN
+              <input type="password" id="currentPinInput" placeholder="••••" maxlength="4" style="width: 100%;">
+            </label>
+            <label style="width: 100%;">New PIN
+              <input type="password" id="newPinInput" placeholder="••••" maxlength="4" style="width: 100%;">
+            </label>
+            <label style="width: 100%;">Confirm New PIN
+              <input type="password" id="confirmPinInput" placeholder="••••" maxlength="4" style="width: 100%;">
+            </label>
+            <button id="changePinBtn" class="btn" style="width: 100%;">Change PIN</button>
+            <p id="pinStatusMsg" style="font-size: 0.85rem; font-weight: 600; margin-top: 0.5rem;"></p>
+          </div>
         </div>
       </div>
     </div>

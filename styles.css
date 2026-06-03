@@ -2001,3 +2001,58 @@ input:checked + .slider-switch:before {
   }
 }
 
+/* CMS Repeater Lists */
+.repeater-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.repeater-item {
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  position: relative;
+}
+
+.repeater-item .remove-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(255, 82, 82, 0.1);
+  color: #ff5252;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.repeater-item .remove-btn:hover {
+  background: #ff5252;
+  color: white;
+}
+
+.admin-tabs-nav {
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+}
+
+.admin-tabs-nav::-webkit-scrollbar {
+  height: 6px;
+}
+.admin-tabs-nav::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}

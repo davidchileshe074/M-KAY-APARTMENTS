@@ -1,0 +1,14 @@
+node_modules/
+uploads/
+data/bookings.json
+.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+coverage/
+dist/
