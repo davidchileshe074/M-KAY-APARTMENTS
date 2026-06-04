@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — M KAY APARTMENTS</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <!-- FullCalendar -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════
+     LOGIN SCREEN
+════════════════════════════════════════════════════════════════ -->
+<div id="mkAdminLogin" class="admin-login-screen">
+  <div class="admin-login-card">
+    <div class="admin-login-logo">
+      <span class="admin-logo-mk">M KAY</span>
+      <span class="admin-logo-sub">Admin Portal</span>
+    </div>
+    <h2>Welcome Back</h2>
+    <p>Sign in with Firebase Admin credentials</p>
+    <form id="adminLoginForm">
+      <div class="form-group">
+        <label for="adminEmailInput">Admin Email</label>
+        <input type="email" id="adminEmailInput" class="admin-input" placeholder="admin@example.com" autocomplete="username" required>
+      </div>
+      <div class="form-group">
+        <label for="adminPasswordInput">Password</label>
+        <input type="password" id="adminPasswordInput" class="admin-input" placeholder="••••••••" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="admin-btn admin-btn-primary" id="adminLoginBtn" style="width:100%; justify-content:center; margin-top:0.5rem; padding: 0.8rem;">
+        <i class="fa-solid fa-lock-open" id="loginBtnIcon"></i>
+        <span id="loginBtnText">Sign In</span>
+      </button>
+      <p class="admin-login-error" id="adminLoginError"></p>
+    </form>
+    <p style="text-align:center; margin-top:1.5rem; font-size:0.8rem; color:var(--text-muted);">
+      <a href="index.html"><i class="fa-solid fa-arrow-left"></i> Back to website</a>
+    </p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     MAIN DASHBOARD
+════════════════════════════════════════════════════════════════ -->
+<div id="mkAdminDashboard" class="admin-dashboard" style="display:none">
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="admin-sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-logo">
+      <span>M KAY</span>
+      <span class="sidebar-logo-sub">Admin</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="sidebar-link active" data-section="overview" id="nav-overview">
+        <i class="fa-solid fa-chart-line"></i><span>Overview</span>
+      </a>
+      <a href="#" class="sidebar-link" data-section="apartments" id="nav-apartments">
+        <i class="fa-solid fa-building"></i><span>Apartments</span>
+      </a>
+      <a href="#" class="sidebar-link" data-section="gallery" id="nav-gallery">
+        <i class="fa-solid fa-images"></i><span>Gallery</span>
+      </a>
+      <a href="#" class="sidebar-link" data-section="pricing" id="nav-pricing">
+        <i class="fa-solid fa-tag"></i><span>Pricing</span>
+      </a>
+      <a href="#" class="sidebar-link" data-section="calendar" id="nav-calendar">
+        <i class="fa-solid fa-calendar-days"></i><span>Calendar</span>
+      </a>
+      <a href="#" class="sidebar-link" data-section="bookings" id="nav-bookings">
+        <i class="fa-solid fa-book-open"></i><span>Bookings</span>
+        <span id="pendingBadge" style="display:none; background:var(--warning); color:#000; font-size:0.65rem; padding:1px 6px; border-radius:10px; margin-left:auto; font-weight:700;"></span>
+      </a>
+      <a href="#" class="sidebar-link" data-section="settings" id="nav-settings">
+        <i class="fa-solid fa-gear"></i><span>Settings</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="index.html" class="sidebar-link" style="margin-bottom:0.25rem;">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i><span>View Site</span>
+      </a>
+      <button id="adminLogoutBtn" class="sidebar-logout">
+        <i class="fa-solid fa-right-from-bracket"></i><span>Sign Out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Mobile Header -->
+  <header class="admin-mobile-header">
+    <button id="adminMobileMenuBtn" aria-label="Toggle menu"><i class="fa-solid fa-bars"></i></button>
+    <span style="background:linear-gradient(135deg,var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800;">M KAY Admin</span>
+    <div></div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="admin-main" id="adminMain">
+
+    <!-- ══ SECTION: OVERVIEW ══════════════════════════════════════ -->
+    <section class="admin-section active" id="section-overview">
+      <div class="admin-section-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p id="overviewWelcome">Loading...</p>
+        </div>
+        <button class="admin-btn admin-btn-outline" onclick="loadOverview()">
+          <i class="fa-solid fa-rotate"></i> Refresh
+        </button>
+      </div>
+      <div class="stats-grid" id="overviewStats">
+        <div class="loading-center"><div class="admin-spinner"></div></div>
+      </div>
+      <div class="overview-grid">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fa-solid fa-clock"></i> Recent Bookings</h3>
+            <button class="admin-btn admin-btn-sm admin-btn-outline" onclick="switchSection('bookings')">View All</button>
+          </div>
+          <div id="recentBookingsList"><p style="color:var(--text-muted);font-size:0.9rem;padding:1rem 0;">Loading bookings...</p></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3>
+          </div>
+          <div class="quick-actions">
+            <button class="admin-btn admin-btn-primary" onclick="switchSection('bookings')">
+              <i class="fa-solid fa-book-open"></i> Manage Bookings
+            </button>
+            <button class="admin-btn admin-btn-outline" onclick="switchSection('calendar')">
+              <i class="fa-solid fa-calendar-days"></i> Manage Calendar
+            </button>
+            <button class="admin-btn admin-btn-outline" onclick="switchSection('pricing')">
+              <i class="fa-solid fa-tag"></i> Update Seasonal Pricing
+            </button>
+            <button class="admin-btn admin-btn-outline" onclick="switchSection('gallery')">
+              <i class="fa-solid fa-images"></i> Upload Photos
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SECTION: APARTMENTS ════════════════════════════════════ -->
+    <section class="admin-section" id="section-apartments">
+      <div class="admin-section-header">
+        <div>
+          <h1>Apartments</h1>
+          <p>Edit apartment info, add new apartments, and manage images</p>
+        </div>
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+          <button class="admin-btn admin-btn-outline" onclick="addNewApartment()">
+            <i class="fa-solid fa-plus"></i> Add Apartment
+          </button>
+          <button class="admin-btn admin-btn-primary" id="saveAllApartmentsBtn">
+            <i class="fa-solid fa-floppy-disk"></i> Save All Changes
+          </button>
+        </div>
+      </div>
+      <div id="apartmentsManager">
+        <div class="loading-center"><div class="admin-spinner"></div><span>Loading apartments...</span></div>
+      </div>
+    </section>
+
+    <!-- ══ SECTION: GALLERY ═══════════════════════════════════════ -->
+    <section class="admin-section" id="section-gallery">
+      <div class="admin-section-header">
+        <div>
+          <h1>Photo Gallery</h1>
+          <p>Upload and manage all apartment photos</p>
+        </div>
+        <div class="header-actions">
+          <select id="galleryApartmentFilter" class="admin-select">
+            <option value="">All Apartments</option>
+          </select>
+          <label class="admin-btn admin-btn-primary" style="cursor:pointer;">
+            <i class="fa-solid fa-upload"></i> Upload Images
+            <input type="file" id="galleryUploadFiles" multiple accept="image/*" style="display:none">
+          </label>
+        </div>
+      </div>
+      <div id="galleryUploadStatus" class="gallery-upload-status"></div>
+      <div class="admin-gallery-grid" id="adminGalleryGrid">
+        <div class="loading-center"><div class="admin-spinner"></div></div>
+      </div>
+    </section>
+
+    <!-- ══ SECTION: PRICING ═══════════════════════════════════════ -->
+    <section class="admin-section" id="section-pricing">
+      <div class="admin-section-header">
+        <div>
+          <h1>Seasonal Pricing</h1>
+          <p>Set nightly rates per month. Used for booking total calculations.</p>
+        </div>
+        <button class="admin-btn admin-btn-primary" id="openAddPricingBtn">
+          <i class="fa-solid fa-plus"></i> Add Rate
+        </button>
+      </div>
+      <div class="admin-card">
+        <div class="table-wrapper">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Year</th>
+                <th>Nightly Rate (K)</th>
+                <th>Season Type</th>
+                <th style="width:120px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pricingTableBody">
+              <tr><td colspan="5" class="no-data"><i class="fa-solid fa-tag"></i>No pricing records yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pricing Modal -->
+      <div class="admin-modal" id="pricingModal" style="display:none">
+        <div class="admin-modal-card">
+          <div class="admin-modal-header">
+            <h3 id="pricingModalTitle">Add Seasonal Rate</h3>
+            <button class="admin-modal-close" id="closePricingModal"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <form id="pricingForm">
+            <input type="hidden" id="pricingRecordId">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Month</label>
+                <select id="pricingMonth" class="admin-select" required>
+                  <option value="">Select month</option>
+                  <option value="1">January</option><option value="2">February</option>
+                  <option value="3">March</option><option value="4">April</option>
+                  <option value="5">May</option><option value="6">June</option>
+                  <option value="7">July</option><option value="8">August</option>
+                  <option value="9">September</option><option value="10">October</option>
+                  <option value="11">November</option><option value="12">December</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Year</label>
+                <input type="number" id="pricingYear" class="admin-input" min="2024" max="2035" placeholder="2025" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Nightly Rate (ZMW)</label>
+              <input type="number" id="pricingRate" class="admin-input" min="0" step="50" placeholder="2000" required>
+              <span class="form-hint">Enter the base nightly rate in Zambian Kwacha</span>
+            </div>
+            <div class="form-group">
+              <label>Season Label (optional)</label>
+              <input type="text" id="pricingLabel" class="admin-input" placeholder="Peak Season, Low Season, etc.">
+            </div>
+            <div class="form-actions">
+              <button type="button" class="admin-btn admin-btn-ghost" id="cancelPricingModal">Cancel</button>
+              <button type="submit" class="admin-btn admin-btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> Save Rate
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SECTION: CALENDAR ══════════════════════════════════════ -->
+    <section class="admin-section" id="section-calendar">
+      <div class="admin-section-header">
+        <div>
+          <h1>Availability Calendar</h1>
+          <p>View bookings and block/unblock dates</p>
+        </div>
+        <div class="header-actions">
+          <select id="calendarApartmentFilter" class="admin-select">
+            <option value="">All Apartments</option>
+          </select>
+          <button class="admin-btn admin-btn-outline" id="addBlockedDateBtn">
+            <i class="fa-solid fa-ban"></i> Block Dates
+          </button>
+        </div>
+      </div>
+      <div class="calendar-legend-bar">
+        <span class="cal-legend-item"><span class="cal-legend-dot" style="background:#2ecc71;"></span>Available</span>
+        <span class="cal-legend-item"><span class="cal-legend-dot" style="background:#e74c3c;"></span>Booked (Confirmed)</span>
+        <span class="cal-legend-item"><span class="cal-legend-dot" style="background:#f39c12;"></span>Pending</span>
+        <span class="cal-legend-item"><span class="cal-legend-dot" style="background:#666;"></span>Blocked</span>
+      </div>
+      <div class="admin-card" style="padding:1rem;">
+        <div id="adminCalendar"></div>
+      </div>
+
+      <!-- Block Dates Modal -->
+      <div class="admin-modal" id="blockDatesModal" style="display:none">
+        <div class="admin-modal-card">
+          <div class="admin-modal-header">
+            <h3>Block Date Range</h3>
+            <button class="admin-modal-close" id="closeBlockModal"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <form id="blockDatesForm">
+            <div class="form-group">
+              <label>Apartment (optional)</label>
+              <select id="blockApartmentSelect" class="admin-select">
+                <option value="">All Apartments</option>
+              </select>
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" id="blockStartDate" class="admin-input" required>
+              </div>
+              <div class="form-group">
+                <label>End Date</label>
+                <input type="date" id="blockEndDate" class="admin-input" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Reason (optional)</label>
+              <input type="text" id="blockReason" class="admin-input" placeholder="Maintenance, renovation, owner use...">
+            </div>
+            <div class="form-actions">
+              <button type="button" class="admin-btn admin-btn-ghost" id="cancelBlockModal">Cancel</button>
+              <button type="submit" class="admin-btn admin-btn-danger">
+                <i class="fa-solid fa-ban"></i> Block Dates
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SECTION: BOOKINGS ══════════════════════════════════════ -->
+    <section class="admin-section" id="section-bookings">
+      <div class="admin-section-header">
+        <div>
+          <h1>Bookings</h1>
+          <p>View, approve, reject, and manage all guest reservations</p>
+        </div>
+        <button class="admin-btn admin-btn-outline" id="refreshBookingsBtnAdmin">
+          <i class="fa-solid fa-rotate"></i> Refresh
+        </button>
+      </div>
+      <div class="admin-card">
+        <div class="bookings-toolbar">
+          <div class="search-box">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="bookingsSearch" class="admin-input" placeholder="Search by name, email, apartment...">
+          </div>
+          <div class="filter-row">
+            <select id="bookingsStatusFilter" class="admin-select">
+              <option value="">All Statuses</option>
+              <option value="new">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="completed">Completed</option>
+            </select>
+            <select id="bookingsApartmentFilter" class="admin-select">
+              <option value="">All Apartments</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Guest</th>
+                <th>Apartment</th>
+                <th>Check-In</th>
+                <th>Check-Out</th>
+                <th>Nights</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th style="width:160px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsTableBody">
+              <tr><td colspan="8" class="no-data"><i class="fa-solid fa-book-open"></i>Loading bookings...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SECTION: SETTINGS ══════════════════════════════════════ -->
+    <section class="admin-section" id="section-settings">
+      <div class="admin-section-header">
+        <h1>Settings</h1>
+      </div>
+      <div class="settings-grid">
+
+        <!-- Change PIN -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fa-solid fa-lock"></i> Change Admin PIN</h3>
+          </div>
+          <form id="changePinForm">
+            <div class="form-group">
+              <label>Current PIN</label>
+              <input type="password" id="currentPin" class="admin-input" placeholder="Current PIN" autocomplete="current-password">
+            </div>
+            <div class="form-group">
+              <label>New PIN</label>
+              <input type="password" id="newPin" class="admin-input" placeholder="New PIN" autocomplete="new-password">
+            </div>
+            <div class="form-group">
+              <label>Confirm New PIN</label>
+              <input type="password" id="confirmPin" class="admin-input" placeholder="Confirm new PIN" autocomplete="new-password">
+            </div>
+            <button type="submit" class="admin-btn admin-btn-primary">
+              <i class="fa-solid fa-lock"></i> Update PIN
+            </button>
+          </form>
+        </div>
+
+        <!-- Contact Settings -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fa-solid fa-address-book"></i> Contact Information</h3>
+          </div>
+          <form id="settingsContactForm">
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="text" id="settingsPhone" class="admin-input" placeholder="+260...">
+            </div>
+            <div class="form-group">
+              <label>WhatsApp Number</label>
+              <input type="text" id="settingsWhatsapp" class="admin-input" placeholder="+260...">
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" id="settingsEmail" class="admin-input">
+            </div>
+            <div class="form-group">
+              <label>Facebook URL</label>
+              <input type="url" id="settingsFacebook" class="admin-input" placeholder="https://facebook.com/...">
+            </div>
+            <div class="form-group">
+              <label>Address</label>
+              <input type="text" id="settingsAddress" class="admin-input" placeholder="Dambwa North Extension, Livingstone">
+            </div>
+            <button type="submit" class="admin-btn admin-btn-primary">
+              <i class="fa-solid fa-floppy-disk"></i> Save Contact Info
+            </button>
+          </form>
+        </div>
+
+        <!-- Base Price -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fa-solid fa-money-bill-wave"></i> Default Nightly Rate</h3>
+          </div>
+          <form id="basePriceForm">
+            <div class="form-group">
+              <label>Default Rate (ZMW) — used when no seasonal rate applies</label>
+              <input type="number" id="settingsBasePrice" class="admin-input" min="0" step="50" placeholder="2000">
+            </div>
+            <button type="submit" class="admin-btn admin-btn-primary">
+              <i class="fa-solid fa-floppy-disk"></i> Save Default Rate
+            </button>
+          </form>
+        </div>
+
+        <!-- About -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3><i class="fa-solid fa-circle-info"></i> About M KAY</h3>
+          </div>
+          <form id="settingsAboutForm">
+            <div class="form-group">
+              <label>Hero Headline</label>
+              <input type="text" id="settingsHeroHeadline" class="admin-input" placeholder="Luxury Meets Comfort">
+            </div>
+            <div class="form-group">
+              <label>Hero Subtitle</label>
+              <input type="text" id="settingsHeroSubtitle" class="admin-input">
+            </div>
+            <div class="form-group">
+              <label>About Section Title</label>
+              <input type="text" id="settingsAboutTitle" class="admin-input">
+            </div>
+            <div class="form-group">
+              <label>About Paragraph 1</label>
+              <textarea id="settingsAboutP1" class="admin-textarea admin-input" rows="3"></textarea>
+            </div>
+            <button type="submit" class="admin-btn admin-btn-primary">
+              <i class="fa-solid fa-floppy-disk"></i> Save About Content
+            </button>
+          </form>
+        </div>
+
+        <!-- Livingstone Experiences -->
+        <div class="admin-card" style="grid-column: span 2;">
+          <div class="admin-card-header">
+            <h3><i class="fa-solid fa-person-hiking"></i> Livingstone Experiences (Activities)</h3>
+          </div>
+          <form id="settingsActivitiesForm">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+              <div class="form-group">
+                <label>Section Tag</label>
+                <input type="text" id="settingsActivitiesKicker" class="admin-input" placeholder="Livingstone Experiences">
+              </div>
+              <div class="form-group">
+                <label>Section Heading</label>
+                <input type="text" id="settingsActivitiesHeadline" class="admin-input" placeholder="Adventure Starts Here">
+              </div>
+              <div class="form-group">
+                <label>Section Description</label>
+                <input type="text" id="settingsActivitiesSubtitle" class="admin-input" placeholder="Turn your stay into a full travel story...">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label style="font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem; display: block;">Activities List</label>
+              <div id="adminActivitiesList" style="display: flex; flex-direction: column; gap: 1rem;">
+                <!-- Dynamically rendered -->
+              </div>
+              <button type="button" class="admin-btn admin-btn-outline" id="addActivityBtn" style="margin-top: 1rem;">
+                <i class="fa-solid fa-plus"></i> Add Activity
+              </button>
+            </div>
+            
+            <button type="submit" class="admin-btn admin-btn-primary" style="margin-top: 1.5rem;">
+              <i class="fa-solid fa-floppy-disk"></i> Save Experiences
+            </button>
+          </form>
+        </div>
+
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Booking Detail Modal -->
+<div class="admin-modal" id="bookingDetailModal" style="display:none">
+  <div class="admin-modal-card" style="max-width:560px;">
+    <div class="admin-modal-header">
+      <h3>Booking Details</h3>
+      <button class="admin-modal-close" id="closeBookingModal"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="bookingDetailContent"></div>
+    <div class="form-actions" id="bookingDetailActions"></div>
+  </div>
+</div>
+
+<!-- Toast Notifications -->
+<div id="adminToastContainer" class="admin-toast-container"></div>
+
+<!-- Firebase (loads first, exposes window.firebaseApiReady) -->
+<script type="module" src="firebase-init.js"></script>
+<!-- Admin JS -->
+<script src="admin.js" defer></script>
+<!-- FullCalendar -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js" defer></script>
+</body>
+</html>

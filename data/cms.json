@@ -3,62 +3,27 @@
   "basePrice": 2000,
   "seasonalRules": [
     {
-      "month": "8",
+      "month": 7,
       "price": 2500,
       "enabled": true
     }
   ],
   "blockedRanges": [],
-  "paymentMethods": [
+  "paymentMethods": [],
+  "customPhotos": [
     {
-      "id": "mtn",
-      "name": "MTN Mobile Money",
-      "icon": "fa-solid fa-mobile-screen-button",
-      "image": "payments icon/mtn-new-logo.svg",
-      "enabled": true,
-      "details": "Send to MTN Mobile Money:\nMerchant Code / Number: +260 764336304\nName: M Kay Apartments Ltd"
+      "src": "assets/628243551_122164141748841441_551392952465463934_n.jpg",
+      "caption": "Apartment lounge area"
     },
     {
-      "id": "airtel",
-      "name": "Airtel Money",
-      "icon": "fa-solid fa-mobile-screen-button",
-      "image": "payments icon/Airtel_logo-02.png",
-      "enabled": true,
-      "details": "Send to Airtel Money:\nNumber: +260 978176858\nName: Masozi Kamanga"
+      "src": "assets/629235778_122164141736841441_5726096542652318515_n.jpg",
+      "caption": "Apartment bedroom interior"
     },
     {
-      "id": "fnb",
-      "name": "FNB Bank Transfer",
-      "icon": "fa-solid fa-building-columns",
-      "image": "payments icon/FNB-Logo.png",
-      "enabled": true,
-      "details": "Bank: First National Bank (FNB)\nAccount: 62981726354\nBranch: Livingstone\nName: M KAY APARTMENTS LTD"
-    },
-    {
-      "id": "visa",
-      "name": "Visa",
-      "icon": "fa-brands fa-cc-visa",
-      "image": "payments icon/Visa_Inc-_idDUM8TcN7_1.png",
-      "enabled": true,
-      "details": "We will email/WhatsApp you a secure payment link to pay with your Visa card."
-    },
-    {
-      "id": "mastercard",
-      "name": "Mastercard",
-      "icon": "fa-brands fa-cc-mastercard",
-      "image": "payments icon/Mastercard_Symbol_1.png",
-      "enabled": true,
-      "details": "We will email/WhatsApp you a secure payment link to pay with your Mastercard."
-    },
-    {
-      "id": "cash",
-      "name": "Cash on Arrival",
-      "icon": "fa-solid fa-money-bill-wave",
-      "enabled": true,
-      "details": "Pay cash in Zambian Kwacha (K) or USD upon arrival at check-in."
+      "src": "assets/557449767_122144858396841441_3476021069714433910_n.jpg",
+      "caption": "Modern apartment exterior"
     }
   ],
-  "customPhotos": [],
   "hero": {
     "kicker": "Livingstone, Zambia | Dambwa North Extension",
     "headline": "Luxury Meets Comfort in Livingstone",

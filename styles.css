@@ -1090,8 +1090,8 @@ textarea:focus {
 }
 
 .reveal {
-  opacity: 0;
-  transform: translateY(32px);
+  opacity: 1;
+  transform: none;
   transition: opacity 0.65s ease, transform 0.65s ease;
 }
 
@@ -1268,7 +1268,7 @@ textarea:focus {
   border-radius: var(--radius);
   padding: 1.3rem;
   margin-top: 1.5rem;
-  box-shadow: 0 8px 32px rgba(20, 16, 11, 0.08);
+  box-shadow: none;
 }
 
 .calendar-header {
@@ -1513,14 +1513,14 @@ body.dark-theme .legend-dot.blocked {
 
 .payment-methods-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.9rem;
 }
 
 .payment-method-card {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 1.1rem 0.7rem;
+  padding: 1.25rem 1rem;
   text-align: center;
   cursor: pointer;
   background: var(--surface);
@@ -1528,26 +1528,63 @@ body.dark-theme .legend-dot.blocked {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 0.7rem;
+  min-height: 150px;
 }
 
-.payment-method-card i {
-  font-size: 2.4rem;
+.payment-method-media {
+  position: relative;
+  width: 120px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+}
+
+.payment-method-media i,
+.payment-method-media img {
+  grid-area: 1 / 1;
+}
+
+.payment-fallback {
+  font-size: 2.8rem;
   color: var(--muted);
-  transition: color 0.25s ease;
+  transition: color 0.25s ease, opacity 0.25s ease;
 }
 
-.payment-method-card img {
-  height: 52px;
+.payment-logo {
+  display: block;
+  height: 68px;
   width: auto;
   max-width: 100%;
   object-fit: contain;
-  transition: all var(--transition);
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.payment-method-card span {
-  font-size: 0.82rem;
+.payment-method-card.image-loaded .payment-fallback {
+  opacity: 0;
+  visibility: hidden;
+  display: none;
+}
+
+.payment-method-card > span:last-child {
+  font-size: 0.9rem;
   font-weight: 700;
+  line-height: 1.35;
+}
+
+.payment-detail-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.65rem;
+}
+
+.payment-detail-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
 }
 
 /* Active styles matching brand networks */
@@ -1564,55 +1601,49 @@ body.dark-theme .legend-dot.blocked {
 /* Brand configurations */
 .payment-method-card[data-method="mtn"].active {
   border-color: #ffcc00;
-  box-shadow: 0 4px 12px rgba(255, 204, 0, 0.25);
   background: color-mix(in srgb, #ffcc00 8%, var(--surface));
 }
-.payment-method-card[data-method="mtn"].active i {
+.payment-method-card[data-method="mtn"].active .payment-fallback {
   color: #e6b800;
 }
 
 .payment-method-card[data-method="airtel"].active {
   border-color: #ff0000;
-  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.15);
   background: color-mix(in srgb, #ff0000 6%, var(--surface));
 }
-.payment-method-card[data-method="airtel"].active i {
+.payment-method-card[data-method="airtel"].active .payment-fallback {
   color: #ff0000;
 }
 
 .payment-method-card[data-method="fnb"].active {
   border-color: #00a896;
-  box-shadow: 0 4px 12px rgba(0, 168, 150, 0.2);
   background: color-mix(in srgb, #00a896 8%, var(--surface));
 }
-.payment-method-card[data-method="fnb"].active i {
+.payment-method-card[data-method="fnb"].active .payment-fallback {
   color: #00a896;
 }
 
 .payment-method-card[data-method="visa"].active {
   border-color: #1a1f71;
-  box-shadow: 0 4px 12px rgba(26, 31, 113, 0.2);
   background: color-mix(in srgb, #1a1f71 6%, var(--surface));
 }
-.payment-method-card[data-method="visa"].active i {
+.payment-method-card[data-method="visa"].active .payment-fallback {
   color: #1a1f71;
 }
 
 .payment-method-card[data-method="mastercard"].active {
   border-color: #eb001b;
-  box-shadow: 0 4px 12px rgba(235, 0, 27, 0.2);
   background: color-mix(in srgb, #ff5f00 6%, var(--surface));
 }
-.payment-method-card[data-method="mastercard"].active i {
+.payment-method-card[data-method="mastercard"].active .payment-fallback {
   color: #eb001b;
 }
 
 .payment-method-card[data-method="cash"].active {
   border-color: var(--text);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   background: color-mix(in srgb, var(--text) 6%, var(--surface));
 }
-.payment-method-card[data-method="cash"].active i {
+.payment-method-card[data-method="cash"].active .payment-fallback {
   color: var(--text);
 }
 
@@ -1621,11 +1652,15 @@ body.dark-theme .legend-dot.blocked {
   background: color-mix(in srgb, var(--surface-soft) 40%, var(--surface));
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 0.9rem;
-  font-size: 0.85rem;
+  padding: 1rem;
+  font-size: 0.9rem;
   line-height: 1.5;
   color: var(--text);
   animation: fade-up 0.35s ease;
+}
+
+.payment-detail-body {
+  white-space: normal;
 }
 
 .payment-instructions strong {
@@ -1633,35 +1668,47 @@ body.dark-theme .legend-dot.blocked {
 }
 
 /* ==========================================================================
-   HOST CONTROL PANEL MODAL
+   HOST CONTROL PANEL PAGE
    ========================================================================== */
 .admin-modal {
+  display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 150;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
+  z-index: 220;
+  width: 100%;
+  padding: 1rem;
+  overflow: auto;
+  background: rgba(18, 16, 13, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-.admin-modal.active {
-  display: flex;
+.admin-modal::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), transparent 24%);
 }
 
 .admin-modal-content {
-  background: var(--surface);
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  width: min(720px, 94vw);
-  max-height: 85vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.admin-modal.active {
+  display: block;
+}
+
+.admin-modal-content {
   display: flex;
   flex-direction: column;
+  min-height: 100%;
+  max-height: none;
 }
 
 .admin-modal-header {
@@ -1698,7 +1745,7 @@ body.dark-theme .legend-dot.blocked {
   opacity: 1;
 }
 
-/* PIN login view */
+/* Host login view */
 .admin-login-box {
   padding: 2.5rem 1.5rem;
   text-align: center;
@@ -1709,20 +1756,22 @@ body.dark-theme .legend-dot.blocked {
 .pin-input-row {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
   justify-content: center;
   margin-top: 1rem;
 }
 
 .pin-input-row input {
-  width: 110px;
-  text-align: center;
-  font-size: 1.4rem;
-  letter-spacing: 0.4em;
-  padding: 0.5rem;
+  flex: 1 1 160px;
+  min-width: 0;
+  text-align: left;
+  font-size: 1rem;
+  letter-spacing: normal;
+  padding: 0.8rem 0.9rem;
 }
 
 .pin-input-row button {
-  padding: 0.65rem 1.3rem;
+  padding: 0.8rem 1.3rem;
 }
 
 /* Dashboard Tabs Navigation */
@@ -1738,6 +1787,9 @@ body.dark-theme .legend-dot.blocked {
   background: color-mix(in srgb, var(--surface-soft) 40%, var(--surface));
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .tab-btn {
@@ -1789,6 +1841,66 @@ body.dark-theme .legend-dot.blocked {
 .admin-tab-panel h4 {
   font-size: 1.05rem;
   margin-bottom: 0.8rem;
+}
+
+.bookings-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.bookings-table-wrapper {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.bookings-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.bookings-table th,
+.bookings-table td {
+  padding: 0.9rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  font-size: 0.95rem;
+}
+
+.bookings-table th {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.bookings-table tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
+
+.status-badge,
+.status-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.status-select {
+  min-width: 140px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
+.bookings-note {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin-top: 0.8rem;
 }
 
 /* Host form styles */
@@ -1872,46 +1984,84 @@ body.dark-theme .legend-dot.blocked {
 /* Custom Gallery display in Admin Panel */
 .custom-gallery-manager {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 0.8rem;
   margin-top: 0.8rem;
 }
 
 .custom-gallery-card {
-  position: relative;
-  aspect-ratio: 1.1;
+  display: flex;
+  flex-direction: column;
   border-radius: var(--radius-sm);
   overflow: hidden;
   border: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .custom-gallery-card img {
   width: 100%;
-  height: 100%;
+  height: 180px;
   object-fit: cover;
 }
 
-.btn-delete-image {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: rgba(20, 18, 14, 0.85);
-  border: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  color: #ff5252;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  font-size: 0.88rem;
-  transition: all 0.2s ease;
+.custom-gallery-card-body {
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
 }
 
-.btn-delete-image:hover {
-  background: #ff5252;
-  color: #fff;
-  transform: scale(1.05);
+.custom-gallery-card-body label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.custom-caption-input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.92rem;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.custom-gallery-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.custom-gallery-card-actions .btn {
+  flex: 1 1 calc(50% - 0.25rem);
+  min-width: 100px;
+  font-size: 0.8rem;
+  padding: 0.55rem 0.6rem;
+}
+
+.btn-delete-image {
+  position: static;
+  width: auto;
+  height: auto;
+  border-radius: var(--radius);
+  color: var(--danger);
+  background: rgba(255, 82, 82, 0.1);
+  border: 1px solid rgba(255, 82, 82, 0.16);
+  padding: 0.55rem 0.7rem;
+}
+
+.btn-save-caption,
+.btn-copy-url {
+  border: 1px solid var(--border);
+  background: var(--background);
+}
+
+.btn-delete-image:hover,
+.btn-save-caption:hover,
+.btn-copy-url:hover {
+  transform: none;
+  opacity: 0.95;
 }
 
 /* Payment settings styling */
@@ -1987,7 +2137,7 @@ input:checked + .slider-switch {
 }
 
 input:focus + .slider-switch {
-  box-shadow: 0 0 1px var(--accent);
+  box-shadow: none;
 }
 
 input:checked + .slider-switch:before {
@@ -2018,6 +2168,41 @@ input:checked + .slider-switch:before {
   flex-direction: column;
   gap: 0.8rem;
   position: relative;
+}
+
+.media-upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: -0.15rem;
+}
+
+.btn-upload-media {
+  align-self: flex-start;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.media-preview-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.15rem;
+}
+
+.media-preview-item {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.media-preview-item img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
 }
 
 .repeater-item .remove-btn {

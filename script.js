@@ -1,4 +1,4 @@
-(async function () {
+(function () {
   const body = document.body;
   const siteHeader = document.querySelector(".site-header");
   const menuToggle = document.getElementById("menuToggle");
@@ -7,29 +7,20 @@
   const themeIcon = themeToggle ? themeToggle.querySelector("i") : null;
 
   function setTheme(theme) {
-    if (theme === "dark") {
-      body.classList.add("dark-theme");
-      if (themeIcon) {
-        themeIcon.classList.remove("fa-moon");
-        themeIcon.classList.add("fa-sun");
-      }
-    } else {
-      body.classList.remove("dark-theme");
-      if (themeIcon) {
-        themeIcon.classList.remove("fa-sun");
-        themeIcon.classList.add("fa-moon");
-      }
+    const isDark = theme === "dark";
+    body.classList.toggle("dark-theme", isDark);
+    if (themeIcon) {
+      themeIcon.classList.toggle("fa-moon", !isDark);
+      themeIcon.classList.toggle("fa-sun", isDark);
     }
-    localStorage.setItem("mkay-theme", theme);
+    localStorage.setItem("mkay-theme", isDark ? "dark" : "light");
   }
 
-  const savedTheme = localStorage.getItem("mkay-theme");
-  setTheme(savedTheme === "dark" ? "dark" : "light");
+  setTheme(localStorage.getItem("mkay-theme") === "dark" ? "dark" : "light");
 
   if (themeToggle) {
     themeToggle.addEventListener("click", function () {
-      const nextTheme = body.classList.contains("dark-theme") ? "light" : "dark";
-      setTheme(nextTheme);
+      setTheme(body.classList.contains("dark-theme") ? "light" : "dark");
     });
   }
 
@@ -48,10 +39,8 @@
   }
 
   window.addEventListener("scroll", function () {
-    if (window.scrollY > 40) {
-      siteHeader.classList.add("scrolled");
-    } else {
-      siteHeader.classList.remove("scrolled");
+    if (siteHeader) {
+      siteHeader.classList.toggle("scrolled", window.scrollY > 40);
     }
   });
 
@@ -67,19 +56,19 @@
     },
     { threshold: 0.16 }
   );
-
   revealElements.forEach(function (el) {
     revealObserver.observe(el);
   });
 
   function initApartmentSliders() {
-    const sliders = document.querySelectorAll("[data-slider]");
-    sliders.forEach(function (slider) {
+    document.querySelectorAll("[data-slider]").forEach(function (slider) {
       const track = slider.querySelector(".slider-track");
-      const slides = Array.from(track.querySelectorAll("img"));
+      const slides = Array.from(track ? track.querySelectorAll("img") : []);
       const prevBtn = slider.querySelector("[data-prev]");
       const nextBtn = slider.querySelector("[data-next]");
       let index = 0;
+
+      if (!track || slides.length === 0) return;
 
       function updateSlidePosition() {
         track.style.transform = "translateX(-" + index * 100 + "%)";
@@ -108,6 +97,8 @@
 
   function initCounters() {
     const counters = document.querySelectorAll(".counter");
+    if (!counters.length) return;
+
     let hasRun = false;
     const counterObserver = new IntersectionObserver(
       function (entries) {
@@ -135,9 +126,7 @@
       { threshold: 0.3 }
     );
 
-    if (counters.length > 0) {
-      counterObserver.observe(counters[0]);
-    }
+    counterObserver.observe(counters[0]);
   }
 
   function initTestimonials() {
@@ -146,15 +135,20 @@
     const next = document.getElementById("testimonialNext");
     if (!track) return;
 
-    const cards = Array.from(track.children);
     let index = 0;
 
     function render() {
-      track.style.transform = "translateX(-" + index * 100 + "%)";
+      const cards = Array.from(track.children);
+      if (!cards.length) return;
+      const safeIndex = ((index % cards.length) + cards.length) % cards.length;
+      index = safeIndex;
+      track.style.transform = "translateX(-" + safeIndex * 100 + "%)";
     }
 
     if (prev) {
       prev.addEventListener("click", function () {
+        const cards = Array.from(track.children);
+        if (!cards.length) return;
         index = (index - 1 + cards.length) % cards.length;
         render();
       });
@@ -162,42 +156,47 @@
 
     if (next) {
       next.addEventListener("click", function () {
+        const cards = Array.from(track.children);
+        if (!cards.length) return;
         index = (index + 1) % cards.length;
         render();
       });
     }
 
     setInterval(function () {
+      const cards = Array.from(track.children);
+      if (!cards.length) return;
       index = (index + 1) % cards.length;
       render();
     }, 7000);
   }
 
   function initFaqAccordion() {
-    const items = document.querySelectorAll(".faq-item");
-    items.forEach(function (item) {
-      const question = item.querySelector(".faq-question");
-      const answer = item.querySelector(".faq-answer");
-      if (!question || !answer) return;
+    const faqList = document.querySelector("#faq .faq-list");
+    if (!faqList || document.body.dataset.faqBound === "true") return;
+    document.body.dataset.faqBound = "true";
 
-      question.addEventListener("click", function () {
-        const isActive = item.classList.contains("active");
+    faqList.addEventListener("click", function (event) {
+      const question = event.target.closest(".faq-question");
+      if (!question) return;
+      const item = question.closest(".faq-item");
+      const answer = item?.querySelector(".faq-answer");
+      if (!item || !answer) return;
+      const isActive = item.classList.contains("active");
 
-        items.forEach(function (it) {
-          it.classList.remove("active");
-          const panel = it.querySelector(".faq-answer");
-          if (panel) panel.style.maxHeight = null;
-        });
-
-        if (!isActive) {
-          item.classList.add("active");
-          answer.style.maxHeight = answer.scrollHeight + "px";
-        }
+      faqList.querySelectorAll(".faq-item.active").forEach(function (activeItem) {
+        activeItem.classList.remove("active");
+        const panel = activeItem.querySelector(".faq-answer");
+        if (panel) panel.style.maxHeight = null;
       });
+
+      if (!isActive) {
+        item.classList.add("active");
+        answer.style.maxHeight = answer.scrollHeight + "px";
+      }
     });
   }
 
-  let currentLightboxIndex = 0;
   function initLightbox() {
     const lightbox = document.getElementById("lightbox");
     const lightboxImage = document.getElementById("lightboxImage");
@@ -205,21 +204,24 @@
     const closeBtn = document.getElementById("lightboxClose");
     const prevBtn = document.getElementById("lightboxPrev");
     const nextBtn = document.getElementById("lightboxNext");
+    const galleryGrid = document.querySelector("#gallery .gallery-grid");
 
-    if (!lightbox || !lightboxImage || !lightboxCaption) return;
+    if (!lightbox || !lightboxImage || !lightboxCaption || !galleryGrid) return;
+    if (document.body.dataset.lightboxBound === "true") return;
+    document.body.dataset.lightboxBound = "true";
 
-    function getItems() {
-      return Array.from(document.querySelectorAll(".gallery-item"));
-    }
+    let currentIndex = 0;
 
     function openAt(index) {
-      const items = getItems();
-      if (index < 0 || index >= items.length) return;
-      const item = items[index];
+      const items = Array.from(galleryGrid.querySelectorAll(".gallery-item"));
+      if (!items.length) return;
+      const safeIndex = ((index % items.length) + items.length) % items.length;
+      const item = items[safeIndex];
       const img = item.querySelector("img");
       const caption = item.querySelector("figcaption");
       if (!img) return;
-      currentLightboxIndex = index;
+
+      currentIndex = safeIndex;
       lightboxImage.src = img.src;
       lightboxImage.alt = img.alt;
       lightboxCaption.textContent = caption ? caption.textContent : "";
@@ -234,1029 +236,51 @@
       body.style.overflow = "";
     }
 
-    // Event delegation on the gallery grid container
-    const galleryGrid = document.querySelector(".gallery-grid");
-    if (galleryGrid) {
-      galleryGrid.addEventListener("click", function (event) {
-        const item = event.target.closest(".gallery-item");
-        if (item) {
-          const items = getItems();
-          const idx = items.indexOf(item);
-          if (idx !== -1) {
-            openAt(idx);
-          }
-        }
-      });
-    }
+    galleryGrid.addEventListener("click", function (event) {
+      const item = event.target.closest(".gallery-item");
+      if (!item || !galleryGrid.contains(item)) return;
+      const items = Array.from(galleryGrid.querySelectorAll(".gallery-item"));
+      const index = items.indexOf(item);
+      if (index !== -1) openAt(index);
+    });
 
     if (closeBtn) closeBtn.addEventListener("click", close);
-
-    if (prevBtn) {
-      prevBtn.addEventListener("click", function () {
-        const items = getItems();
-        openAt((currentLightboxIndex - 1 + items.length) % items.length);
-      });
-    }
-
-    if (nextBtn) {
-      nextBtn.addEventListener("click", function () {
-        const items = getItems();
-        openAt((currentLightboxIndex + 1) % items.length);
-      });
-    }
+    if (prevBtn) prevBtn.addEventListener("click", function () {
+      const items = Array.from(galleryGrid.querySelectorAll(".gallery-item"));
+      if (!items.length) return;
+      openAt((currentIndex - 1 + items.length) % items.length);
+    });
+    if (nextBtn) nextBtn.addEventListener("click", function () {
+      const items = Array.from(galleryGrid.querySelectorAll(".gallery-item"));
+      if (!items.length) return;
+      openAt((currentIndex + 1) % items.length);
+    });
 
     lightbox.addEventListener("click", function (event) {
-      if (event.target === lightbox) {
-        close();
-      }
+      if (event.target === lightbox) close();
     });
 
     document.addEventListener("keydown", function (event) {
       if (!lightbox.classList.contains("active")) return;
+      const items = Array.from(galleryGrid.querySelectorAll(".gallery-item"));
+      if (!items.length) return;
       if (event.key === "Escape") close();
-      if (event.key === "ArrowLeft") {
-        const items = getItems();
-        openAt((currentLightboxIndex - 1 + items.length) % items.length);
-      }
-      if (event.key === "ArrowRight") {
-        const items = getItems();
-        openAt((currentLightboxIndex + 1) % items.length);
-      }
+      if (event.key === "ArrowLeft") openAt((currentIndex - 1 + items.length) % items.length);
+      if (event.key === "ArrowRight") openAt((currentIndex + 1) % items.length);
     });
   }
 
-  // -------------------------------------------------------------
-  // STATE MANAGEMENT (LOCAL STORAGE)
-  // -------------------------------------------------------------
-  const STATE_KEY = "mkay_apartments_state_v1";
-  const defaultState = {
-    basePrice: 2000,
-    seasonalRules: [
-      { month: 7, price: 2500, label: "August Peak Season" } // August is index 7 (0-indexed)
-    ],
-    blockedRanges: [], // Array of { start: 'YYYY-MM-DD', end: 'YYYY-MM-DD' }
-    paymentMethods: [
-      { id: "mtn", name: "MTN Mobile Money", icon: "fa-solid fa-mobile-screen-button", image: "payments icon/mtn-new-logo.svg", enabled: true, details: "Send to MTN Mobile Money:\nMerchant Code / Number: +260 764336304\nName: M Kay Apartments Ltd" },
-      { id: "airtel", name: "Airtel Money", icon: "fa-solid fa-mobile-screen-button", image: "payments icon/Airtel_logo-02.png", enabled: true, details: "Send to Airtel Money:\nNumber: +260 978176858\nName: Masozi Kamanga" },
-      { id: "fnb", name: "FNB Bank Transfer", icon: "fa-solid fa-building-columns", image: "payments icon/FNB-Logo.png", enabled: true, details: "Bank: First National Bank (FNB)\nAccount: 62981726354\nBranch: Livingstone\nName: M KAY APARTMENTS LTD" },
-      { id: "visa", name: "Visa", icon: "fa-brands fa-cc-visa", image: "payments icon/Visa_Inc-_idDUM8TcN7_1.png", enabled: true, details: "We will email/WhatsApp you a secure payment link to pay with your Visa card." },
-      { id: "mastercard", name: "Mastercard", icon: "fa-brands fa-cc-mastercard", image: "payments icon/Mastercard_Symbol_1.png", enabled: true, details: "We will email/WhatsApp you a secure payment link to pay with your Mastercard." },
-      { id: "cash", name: "Cash on Arrival", icon: "fa-solid fa-money-bill-wave", enabled: true, details: "Pay cash in Zambian Kwacha (K) or USD upon arrival at check-in." }
-    ],
-    customPhotos: [] // Array of { src: 'data:image/jpeg;base64...', caption: '...' }
-  };
-
-  let state = defaultState;
-
-  async function loadState() {
-    try {
-      const response = await fetch('/api/state');
-      if (response.ok) {
-        const fetchedState = await response.json();
-        state = fetchedState;
-        
-        // Merge defaults for any missing keys
-        for (let key in defaultState) {
-          if (state[key] === undefined) {
-            state[key] = defaultState[key];
-          }
-        }
-        
-        // Migrate old "card" method to separate Visa and Mastercard
-        if (state.paymentMethods && Array.isArray(state.paymentMethods)) {
-          const cardIdx = state.paymentMethods.findIndex(m => m.id === "card");
-          if (cardIdx !== -1) {
-            const visaDef = defaultState.paymentMethods.find(m => m.id === "visa");
-            const mcDef = defaultState.paymentMethods.find(m => m.id === "mastercard");
-            state.paymentMethods.splice(cardIdx, 1, visaDef, mcDef);
-          }
-
-          // Ensure any new default methods are present
-          defaultState.paymentMethods.forEach(defMethod => {
-            if (!state.paymentMethods.find(m => m.id === defMethod.id)) {
-              state.paymentMethods.push(defMethod);
-            }
-          });
-
-          // Merge image and icon properties from defaults
-          state.paymentMethods.forEach(method => {
-            const defMethod = defaultState.paymentMethods.find(m => m.id === method.id);
-            if (defMethod) {
-              method.icon = defMethod.icon;
-              method.image = defMethod.image;
-            }
-          });
-        }
-      } else {
-        console.error("Failed to fetch state from server, using default");
-        state = defaultState;
-      }
-      renderWebsiteContent();
-    } catch (e) {
-      console.error("Error fetching state:", e);
-      state = defaultState;
-    }
-  }
-
-  async function saveState() {
-    try {
-      const token = sessionStorage.getItem('adminToken');
-      if (!token) return; // Only save if authenticated
-      
-      const response = await fetch('/api/state', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ token, state })
-      });
-      
-      if (!response.ok) {
-        console.error("Failed to save state to server");
-      }
-    } catch (e) {
-      console.error("Error saving state:", e);
-    }
-  }
-
-  // -------------------------------------------------------------
-  // PRICING ENGINE
-  // -------------------------------------------------------------
-  function getNightlyRateForDate(dateStr) {
-    const date = new Date(dateStr);
-    const month = date.getMonth();
-    const rule = state.seasonalRules.find(r => Number(r.month) === month);
-    return rule ? Number(rule.price) : Number(state.basePrice);
-  }
-
-  function isHighSeasonDate(dateStr) {
-    const date = new Date(dateStr);
-    const month = date.getMonth();
-    return state.seasonalRules.some(r => Number(r.month) === month);
-  }
-
-  function calculateStayBreakdown(checkInStr, checkOutStr) {
-    if (!checkInStr || !checkOutStr) return null;
-    const start = new Date(checkInStr);
-    const end = new Date(checkOutStr);
-    if (end <= start) return null;
-
-    let totalNights = 0;
-    let totalCost = 0;
-    const breakdown = {};
-
-    let current = new Date(start);
-    while (current < end) {
-      const dateString = current.toISOString().split("T")[0];
-      const rate = getNightlyRateForDate(dateString);
-      totalCost += rate;
-      totalNights++;
-      breakdown[rate] = (breakdown[rate] || 0) + 1;
-      current.setDate(current.getDate() + 1);
-    }
-
-    return { totalNights, totalCost, breakdown };
-  }
-
-  function isDateBlocked(dateStr) {
-    return state.blockedRanges.some(range => {
-      return dateStr >= range.start && dateStr <= range.end;
-    });
-  }
-
-  // -------------------------------------------------------------
-  // VISITOR CALENDAR ENGINE
-  // -------------------------------------------------------------
-  let calendarYear = new Date().getFullYear();
-  let calendarMonth = new Date().getMonth();
-  let selectedCheckIn = null;
-  let selectedCheckOut = null;
-
-  function initCalendar() {
-    const prevBtn = document.getElementById("prevMonthBtn");
-    const nextBtn = document.getElementById("nextMonthBtn");
-
-    if (prevBtn && nextBtn) {
-      prevBtn.addEventListener("click", function () {
-        calendarMonth--;
-        if (calendarMonth < 0) {
-          calendarMonth = 11;
-          calendarYear--;
-        }
-        renderCalendarGrid();
-      });
-
-      nextBtn.addEventListener("click", function () {
-        calendarMonth++;
-        if (calendarMonth > 11) {
-          calendarMonth = 0;
-          calendarYear++;
-        }
-        renderCalendarGrid();
-      });
-    }
-
-    // Sync input changes back to calendar
-    const checkinInput = document.getElementById("checkin");
-    const checkoutInput = document.getElementById("checkout");
-
-    if (checkinInput && checkoutInput) {
-      checkinInput.addEventListener("change", function () {
-        selectedCheckIn = checkinInput.value;
-        if (checkoutInput.value && checkoutInput.value < selectedCheckIn) {
-          selectedCheckOut = selectedCheckIn;
-          checkoutInput.value = selectedCheckIn;
-        } else {
-          selectedCheckOut = checkoutInput.value;
-        }
-        renderCalendarGrid();
-        updatePriceBreakdown();
-      });
-
-      checkoutInput.addEventListener("change", function () {
-        selectedCheckOut = checkoutInput.value;
-        if (checkinInput.value && selectedCheckOut < checkinInput.value) {
-          selectedCheckIn = selectedCheckOut;
-          checkinInput.value = selectedCheckOut;
-        }
-        renderCalendarGrid();
-        updatePriceBreakdown();
-      });
-    }
-
-    renderCalendarGrid();
-  }
-
-  function renderCalendarGrid() {
-    const months = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ];
-    const currentMonthYear = document.getElementById("currentMonthYear");
-    const grid = document.getElementById("calendarDaysGrid");
-    if (!currentMonthYear || !grid) return;
-
-    currentMonthYear.textContent = months[calendarMonth] + " " + calendarYear;
-    grid.innerHTML = "";
-
-    const firstDayIndexRaw = new Date(calendarYear, calendarMonth, 1).getDay();
-    const firstDayIndex = firstDayIndexRaw === 0 ? 6 : firstDayIndexRaw - 1; // Mon-Sun layout
-    const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-
-    const todayStr = new Date().toISOString().split("T")[0];
-
-    // Blank cells
-    for (let i = 0; i < firstDayIndex; i++) {
-      const cell = document.createElement("div");
-      cell.className = "calendar-day empty";
-      grid.appendChild(cell);
-    }
-
-    // Active days
-    for (let d = 1; d <= daysInMonth; d++) {
-      const cell = document.createElement("button");
-      cell.type = "button";
-      cell.className = "calendar-day";
-
-      const cellDate = new Date(calendarYear, calendarMonth, d);
-      const dateStr = cellDate.toISOString().split("T")[0];
-
-      const numLabel = document.createElement("span");
-      numLabel.textContent = String(d);
-      cell.appendChild(numLabel);
-
-      const rateVal = getNightlyRateForDate(dateStr);
-      const priceLabel = document.createElement("span");
-      priceLabel.className = "calendar-day-price";
-      priceLabel.textContent = "K" + (rateVal / 1000).toFixed(1) + "k";
-      cell.appendChild(priceLabel);
-
-      const isPast = dateStr < todayStr;
-      const isBlocked = isDateBlocked(dateStr);
-
-      if (isPast || isBlocked) {
-        cell.classList.add("blocked");
-        cell.setAttribute("disabled", "true");
-      } else {
-        if (isHighSeasonDate(dateStr)) {
-          cell.classList.add("holiday-season");
-        }
-
-        if (selectedCheckIn === dateStr) {
-          cell.classList.add("range-start");
-        } else if (selectedCheckOut === dateStr) {
-          cell.classList.add("range-end");
-        } else if (selectedCheckIn && selectedCheckOut && dateStr > selectedCheckIn && dateStr < selectedCheckOut) {
-          cell.classList.add("range-mid");
-        }
-
-        cell.addEventListener("click", function () {
-          handleCalendarDateClick(dateStr);
-        });
-      }
-
-      grid.appendChild(cell);
-    }
-  }
-
-  function handleCalendarDateClick(dateStr) {
-    if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) {
-      selectedCheckIn = dateStr;
-      selectedCheckOut = null;
-    } else {
-      if (dateStr < selectedCheckIn) {
-        selectedCheckIn = dateStr;
-      } else if (dateStr === selectedCheckIn) {
-        selectedCheckIn = null;
-      } else {
-        // Validate no blocked dates inside selected range
-        let hasBlocked = false;
-        let start = new Date(selectedCheckIn);
-        let end = new Date(dateStr);
-        let current = new Date(start);
-        while (current <= end) {
-          const currentStr = current.toISOString().split("T")[0];
-          if (isDateBlocked(currentStr)) {
-            hasBlocked = true;
-            break;
-          }
-          current.setDate(current.getDate() + 1);
-        }
-
-        if (hasBlocked) {
-          alert("This range contains unavailable dates. Please try another range.");
-          selectedCheckIn = dateStr;
-        } else {
-          selectedCheckOut = dateStr;
-        }
-      }
-    }
-
-    const checkinInput = document.getElementById("checkin");
-    const checkoutInput = document.getElementById("checkout");
-    if (checkinInput) checkinInput.value = selectedCheckIn || "";
-    if (checkoutInput) checkoutInput.value = selectedCheckOut || "";
-
-    renderCalendarGrid();
-    updatePriceBreakdown();
-  }
-
-  function updatePriceBreakdown() {
-    const checkinVal = document.getElementById("checkin").value;
-    const checkoutVal = document.getElementById("checkout").value;
-    const card = document.getElementById("priceBreakdownCard");
-    const details = document.getElementById("breakdownDetails");
-    const totalNode = document.getElementById("breakdownTotalPrice");
-
-    if (!checkinVal || !checkoutVal || checkinVal === checkoutVal) {
-      if (card) card.style.display = "none";
-      return;
-    }
-
-    const res = calculateStayBreakdown(checkinVal, checkoutVal);
-    if (!res || res.totalNights <= 0) {
-      if (card) card.style.display = "none";
-      return;
-    }
-
-    if (card && details && totalNode) {
-      card.style.display = "block";
-      details.innerHTML = "";
-      for (let rate in res.breakdown) {
-        const nights = res.breakdown[rate];
-        const row = document.createElement("div");
-        row.innerHTML = `<span>${nights} night${nights > 1 ? 's' : ''} @ K${Number(rate).toLocaleString()} / night</span><strong>K${(nights * rate).toLocaleString()}</strong>`;
-        details.appendChild(row);
-      }
-      totalNode.textContent = "K" + res.totalCost.toLocaleString();
-    }
-  }
-
-  // -------------------------------------------------------------
-  // DYNAMIC GALLERY DISPLAY
-  // -------------------------------------------------------------
-  function renderCustomGallery() {
-    const grid = document.querySelector(".gallery-grid");
-    if (!grid) return;
-
-    grid.querySelectorAll(".custom-uploaded-item").forEach(item => item.remove());
-
-    state.customPhotos.forEach(photo => {
-      const figure = document.createElement("figure");
-      figure.className = "gallery-item custom-uploaded-item";
-      figure.style.opacity = "1";
-      figure.style.transform = "translateY(0)";
-      
-      const img = document.createElement("img");
-      img.src = photo.src;
-      img.alt = photo.caption || "Guest Uploaded Photo";
-      img.loading = "lazy";
-
-      const figcaption = document.createElement("figcaption");
-      figcaption.textContent = photo.caption || "Customer Shared";
-
-      figure.appendChild(img);
-      figure.appendChild(figcaption);
-      grid.appendChild(figure);
-    });
-  }
-
-  function renderApartmentCards() {
-    const grid = document.querySelector('.apartment-grid');
-    if (!grid || !Array.isArray(state.apartments)) return;
-
-    grid.innerHTML = state.apartments.map((apartment, index) => {
-      const imageItems = Array.isArray(apartment.images) ? apartment.images.map(src => `<img src="${src}" alt="${apartment.name}" loading="lazy">`).join('') : '';
-      const features = Array.isArray(apartment.features) ? apartment.features.map(feature => `<li>${feature}</li>`).join('') : '';
-      return `
-        <article class="apartment-card reveal">
-          <div class="availability available">${apartment.badge || 'Available'}</div>
-          <div class="apartment-slider" data-slider>
-            <div class="slider-track">
-              ${imageItems}
-            </div>
-            <button class="slider-btn prev" data-prev aria-label="Previous image"><i class="fa-solid fa-chevron-left"></i></button>
-            <button class="slider-btn next" data-next aria-label="Next image"><i class="fa-solid fa-chevron-right"></i></button>
-          </div>
-          <div class="apartment-body">
-            <h3>${apartment.name}</h3>
-            <p class="price">${apartment.priceLabel || 'K' + (state.basePrice || 2000) + ' / night'}</p>
-            <ul>${features}</ul>
-            <a class="btn btn-sm" href="https://wa.me/${state.contact.whatsapp}?text=${encodeURIComponent(`Hello M KAY APARTMENTS, I want to book the ${apartment.name}.`)}" target="_blank" rel="noopener">Book Now</a>
-          </div>
-        </article>
-      `;
-    }).join('');
-  }
-
-  function renderApartmentOptions() {
-    const select = document.getElementById('apartmentSelect');
-    if (!select || !Array.isArray(state.apartments)) return;
-
-    select.innerHTML = '<option value="">Select apartment</option>' + state.apartments.map(apartment => `
-      <option value="${apartment.name}">${apartment.name} - ${apartment.priceLabel || 'Price on request'}</option>
-    `).join('');
-  }
-
-  // -------------------------------------------------------------
-  // PAYMENTS SELECTOR
-  // -------------------------------------------------------------
-  function renderPaymentSelector() {
-    const grid = document.getElementById("paymentMethodsGrid");
-    const detailsBox = document.getElementById("paymentInstructionsBox");
-    const hiddenInput = document.getElementById("selectedPaymentMethodInput");
-    if (!grid || !detailsBox) return;
-
-    grid.innerHTML = "";
-    detailsBox.style.display = "none";
-    hiddenInput.value = "";
-
-    const enabledMethods = state.paymentMethods.filter(m => m.enabled);
-    enabledMethods.forEach(method => {
-      const card = document.createElement("div");
-      card.className = "payment-method-card";
-      card.setAttribute("data-method", method.id);
-      
-      const iconHtml = method.image 
-        ? `<img src="${method.image}" alt="${method.name}">`
-        : `<i class="${method.icon}"></i>`;
-
-      card.innerHTML = `
-        ${iconHtml}
-        <span>${method.name}</span>
-      `;
-
-      card.addEventListener("click", function () {
-        document.querySelectorAll(".payment-method-card").forEach(c => c.classList.remove("active"));
-        card.classList.add("active");
-        
-        hiddenInput.value = method.name;
-        detailsBox.innerHTML = `
-          <strong>${method.name} Transfer Instructions:</strong>
-          <p style="white-space: pre-wrap; margin-top: 0.4rem; font-size: 0.85rem; font-family: sans-serif;">${method.details}</p>
-        `;
-        detailsBox.style.display = "block";
-      });
-
-      grid.appendChild(card);
-    });
-  }
-
-  // -------------------------------------------------------------
-  // ADMIN / HOST DASHBOARD CONTROLLER
-  // -------------------------------------------------------------
-  let isAdminAuthenticated = false;
-
-  function initHostDashboard() {
-    const portalBtn = document.getElementById("hostPortalBtn");
-    const modal = document.getElementById("adminModal");
-    const closeBtn = document.getElementById("adminModalClose");
-    
-    const loginBox = document.getElementById("adminLoginBox");
-    const dashboardContent = document.getElementById("adminDashboardContent");
-    const pinInput = document.getElementById("adminPin");
-    const loginBtn = document.getElementById("adminLoginBtn");
-    const loginError = document.getElementById("adminLoginError");
-
-    if (!portalBtn || !modal) return;
-
-    portalBtn.addEventListener("click", function (e) {
-      e.preventDefault();
-      modal.classList.add("active");
-      modal.setAttribute("aria-hidden", "false");
-      body.style.overflow = "hidden";
-
-      if (!isAdminAuthenticated) {
-        loginBox.style.display = "block";
-        dashboardContent.style.display = "none";
-        pinInput.value = "";
-        loginError.style.display = "none";
-      } else {
-        loginBox.style.display = "none";
-        dashboardContent.style.display = "block";
-        renderDashboardPanels();
-      }
-    });
-
-    function closeModal() {
-      modal.classList.remove("active");
-      modal.setAttribute("aria-hidden", "true");
-      body.style.overflow = "";
-    }
-
-    if (closeBtn) closeBtn.addEventListener("click", closeModal);
-    modal.addEventListener("click", function (e) {
-      if (e.target === modal) closeModal();
-    });
-
-    if (loginBtn && pinInput) {
-      loginBtn.addEventListener("click", submitPin);
-      pinInput.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") submitPin();
-      });
-    }
-
-    async function submitPin() {
-      const pin = pinInput.value;
-      loginBtn.disabled = true;
-      loginBtn.textContent = "Verifying...";
-      
-      try {
-        const response = await fetch('/api/auth', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ pin })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          isAdminAuthenticated = true;
-          sessionStorage.setItem('adminToken', data.token);
-          loginBox.style.display = "none";
-          dashboardContent.style.display = "block";
-          loginError.style.display = "none";
-          renderDashboardPanels();
-        } else {
-          loginError.textContent = "Incorrect PIN code. Try again.";
-          loginError.style.display = "block";
-          pinInput.value = "";
-        }
-      } catch (err) {
-        loginError.textContent = "Error connecting to server.";
-        loginError.style.display = "block";
-      } finally {
-        loginBtn.disabled = false;
-        loginBtn.textContent = "Login";
-      }
-    }
-
-    const tabBtns = dashboardContent.querySelectorAll(".tab-btn");
-    const tabPanels = dashboardContent.querySelectorAll(".admin-tab-panel");
-
-    tabBtns.forEach(btn => {
-      btn.addEventListener("click", function () {
-        tabBtns.forEach(b => b.classList.remove("active"));
-        tabPanels.forEach(p => p.classList.remove("active"));
-
-        btn.classList.add("active");
-        const targetTab = btn.getAttribute("data-tab");
-        const panel = document.getElementById(targetTab);
-        if (panel) panel.classList.add("active");
-      });
-    });
-
-    setupPricingActions();
-    setupBlockedDatesActions();
-    setupGalleryUploadActions();
-    setupPaymentsSettingsActions();
-    setupSettingsActions();
-    setupCmsActions();
-  }
-
-  function setupSettingsActions() {
-    const changePinBtn = document.getElementById("changePinBtn");
-    if (!changePinBtn) return;
-
-    changePinBtn.addEventListener("click", async function () {
-      const currentPin = document.getElementById("currentPinInput").value;
-      const newPin = document.getElementById("newPinInput").value;
-      const confirmPin = document.getElementById("confirmPinInput").value;
-      const statusMsg = document.getElementById("pinStatusMsg");
-
-      if (!currentPin || !newPin || !confirmPin) {
-        statusMsg.style.color = "#ff5252";
-        statusMsg.textContent = "Please fill in all fields.";
-        return;
-      }
-
-      if (newPin !== confirmPin) {
-        statusMsg.style.color = "#ff5252";
-        statusMsg.textContent = "New PIN and confirm PIN do not match.";
-        return;
-      }
-
-      if (newPin.length !== 4) {
-        statusMsg.style.color = "#ff5252";
-        statusMsg.textContent = "PIN must be exactly 4 characters.";
-        return;
-      }
-
-      changePinBtn.disabled = true;
-      changePinBtn.textContent = "Updating...";
-      
-      try {
-        const token = sessionStorage.getItem('adminToken');
-        const response = await fetch('/api/pin', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token, oldPin: currentPin, newPin })
-        });
-        
-        const data = await response.json();
-        if (data.success) {
-          statusMsg.style.color = "var(--success)";
-          statusMsg.textContent = "PIN updated successfully!";
-          document.getElementById("currentPinInput").value = "";
-          document.getElementById("newPinInput").value = "";
-          document.getElementById("confirmPinInput").value = "";
-        } else {
-          statusMsg.style.color = "#ff5252";
-          statusMsg.textContent = data.message || "Failed to update PIN.";
-        }
-      } catch (err) {
-        statusMsg.style.color = "#ff5252";
-        statusMsg.textContent = "Error connecting to server.";
-      } finally {
-        changePinBtn.disabled = false;
-        changePinBtn.textContent = "Change PIN";
-      }
-    });
-  }
-
-  function renderDashboardPanels() {
-    renderSeasonsList();
-    renderBlockedRangesList();
-    renderCustomGalleryManager();
-    renderPaymentsSettingsList();
-    renderCmsPanels();
-
-    const basePriceInput = document.getElementById("adminBasePrice");
-    if (basePriceInput) basePriceInput.value = state.basePrice;
-  }
-
-  function setupPricingActions() {
-    const saveBaseBtn = document.getElementById("saveBasePriceBtn");
-    const addRuleBtn = document.getElementById("addRuleBtn");
-
-    if (saveBaseBtn) {
-      saveBaseBtn.addEventListener("click", function () {
-        const val = Number(document.getElementById("adminBasePrice").value);
-        if (val && val > 0) {
-          state.basePrice = val;
-          saveState();
-          alert("Base price updated successfully!");
-          renderCalendarGrid();
-          updatePriceBreakdown();
-        }
-      });
-    }
-
-    if (addRuleBtn) {
-      addRuleBtn.addEventListener("click", function () {
-        const monthSelect = document.getElementById("ruleMonth");
-        const priceInput = document.getElementById("rulePrice");
-        
-        const monthVal = Number(monthSelect.value);
-        const priceVal = Number(priceInput.value);
-        const monthLabel = monthSelect.options[monthSelect.selectedIndex].text;
-
-        if (priceVal && priceVal > 0) {
-          const existingIdx = state.seasonalRules.findIndex(r => Number(r.month) === monthVal);
-          const newRule = { month: monthVal, price: priceVal, label: monthLabel + " Custom Price" };
-          
-          if (existingIdx !== -1) {
-            state.seasonalRules[existingIdx] = newRule;
-          } else {
-            state.seasonalRules.push(newRule);
-          }
-
-          saveState();
-          priceInput.value = "";
-          renderSeasonsList();
-          renderCalendarGrid();
-          updatePriceBreakdown();
-          alert("Seasonal rule added/updated successfully!");
-        } else {
-          alert("Please enter a valid price.");
-        }
-      });
-    }
-  }
-
-  function renderSeasonsList() {
-    const container = document.getElementById("seasonsList");
-    if (!container) return;
-    container.innerHTML = "";
-
-    if (state.seasonalRules.length === 0) {
-      container.innerHTML = `<p style="color: var(--muted); font-size: 0.9rem; font-style: italic;">No seasonal price rules set.</p>`;
-      return;
-    }
-
-    const months = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ];
-
-    state.seasonalRules.forEach((rule, idx) => {
-      const div = document.createElement("div");
-      div.className = "season-item";
-      div.innerHTML = `
-        <span>${months[rule.month]}</span>
-        <span>K${Number(rule.price).toLocaleString()} / night
-          <button class="btn-delete-rule" data-index="${idx}" aria-label="Delete rule"><i class="fa-solid fa-trash-can"></i></button>
-        </span>
-      `;
-
-      div.querySelector(".btn-delete-rule").addEventListener("click", function () {
-        state.seasonalRules.splice(idx, 1);
-        saveState();
-        renderSeasonsList();
-        renderCalendarGrid();
-        updatePriceBreakdown();
-      });
-
-      container.appendChild(div);
-    });
-  }
-
-  function setupBlockedDatesActions() {
-    const addBlockBtn = document.getElementById("addBlockBtn");
-    if (!addBlockBtn) return;
-
-    addBlockBtn.addEventListener("click", function () {
-      const startInput = document.getElementById("blockStart");
-      const endInput = document.getElementById("blockEnd");
-
-      if (startInput.value && endInput.value) {
-        if (endInput.value < startInput.value) {
-          alert("End date cannot be before start date.");
-          return;
-        }
-
-        state.blockedRanges.push({
-          start: startInput.value,
-          end: endInput.value
-        });
-
-        saveState();
-        startInput.value = "";
-        endInput.value = "";
-        
-        renderBlockedRangesList();
-        renderCalendarGrid();
-        updatePriceBreakdown();
-        alert("Dates blocked successfully!");
-      } else {
-        alert("Please select both start and end dates.");
-      }
-    });
-  }
-
-  function renderBlockedRangesList() {
-    const container = document.getElementById("blockedRangesList");
-    if (!container) return;
-    container.innerHTML = "";
-
-    if (state.blockedRanges.length === 0) {
-      container.innerHTML = `<p style="color: var(--muted); font-size: 0.9rem; font-style: italic;">No dates currently blocked.</p>`;
-      return;
-    }
-
-    function formatDate(str) {
-      const d = new Date(str);
-      return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    }
-
-    state.blockedRanges.forEach((range, idx) => {
-      const div = document.createElement("div");
-      div.className = "blocked-item";
-      div.innerHTML = `
-        <span>${formatDate(range.start)} &rarr; ${formatDate(range.end)}</span>
-        <button class="btn-delete-rule" data-index="${idx}" aria-label="Delete block"><i class="fa-solid fa-trash-can"></i></button>
-      `;
-
-      div.querySelector(".btn-delete-rule").addEventListener("click", function () {
-        state.blockedRanges.splice(idx, 1);
-        saveState();
-        renderBlockedRangesList();
-        renderCalendarGrid();
-        updatePriceBreakdown();
-      });
-
-      container.appendChild(div);
-    });
-  }
-
-  function setupGalleryUploadActions() {
-    const trigger = document.getElementById("triggerUploadBtn");
-    const fileInput = document.getElementById("galleryUploadInput");
-    const statusText = document.getElementById("uploadStatusText");
-
-    if (!trigger || !fileInput) return;
-
-    trigger.addEventListener("click", function () {
-      fileInput.click();
-    });
-
-    fileInput.addEventListener("change", async function () {
-      const files = Array.from(fileInput.files);
-      if (files.length === 0) return;
-
-      if (statusText) statusText.textContent = `Processing ${files.length} image(s)...`;
-      let successCount = 0;
-
-      for (let file of files) {
-        try {
-          const compressedBase64 = await compressAndStoreImage(file);
-          const caption = prompt(`Enter a caption for this picture (Optional):`, file.name.split(".")[0]);
-          
-          state.customPhotos.push({
-            src: compressedBase64,
-            caption: caption || "Guest Shared"
-          });
-          successCount++;
-        } catch (err) {
-          console.error(err);
-          alert(`Failed to upload ${file.name}. Size might be too large.`);
-        }
-      }
-
-      if (successCount > 0) {
-        saveState();
-        renderCustomGallery();
-        renderCustomGalleryManager();
-        if (statusText) statusText.textContent = `Successfully uploaded ${successCount} image(s).`;
-      } else {
-        if (statusText) statusText.textContent = `Upload failed.`;
-      }
-      fileInput.value = "";
-    });
-  }
-
-  function compressAndStoreImage(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = function (event) {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = function () {
-          const maxW = 800; // Cap width at 800px
-          let w = img.width;
-          let h = img.height;
-
-          if (w > maxW) {
-            h = Math.round((h * maxW) / w);
-            w = maxW;
-          }
-
-          const canvas = document.createElement("canvas");
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, w, h);
-
-          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.7);
-          resolve(compressedDataUrl);
-        };
-        img.onerror = reject;
-      };
-      reader.onerror = reject;
-    });
-  }
-
-  function renderCustomGalleryManager() {
-    const container = document.getElementById("customGalleryManager");
-    if (!container) return;
-    container.innerHTML = "";
-
-    if (state.customPhotos.length === 0) {
-      container.innerHTML = `<p style="color: var(--muted); font-size: 0.9rem; font-style: italic;">No custom images uploaded yet.</p>`;
-      return;
-    }
-
-    state.customPhotos.forEach((photo, idx) => {
-      const card = document.createElement("div");
-      card.className = "custom-gallery-card";
-      card.innerHTML = `
-        <img src="${photo.src}" alt="${photo.caption || ''}">
-        <button class="btn-delete-image" data-index="${idx}" title="Delete Image"><i class="fa-solid fa-trash"></i></button>
-      `;
-
-      card.querySelector(".btn-delete-image").addEventListener("click", function () {
-        if (confirm("Are you sure you want to delete this custom photo?")) {
-          state.customPhotos.splice(idx, 1);
-          saveState();
-          renderCustomGallery();
-          renderCustomGalleryManager();
-        }
-      });
-
-      container.appendChild(card);
-    });
-  }
-
-  function setupPaymentsSettingsActions() {
-    const saveBtn = document.getElementById("savePaymentsBtn");
-    if (!saveBtn) return;
-
-    saveBtn.addEventListener("click", function () {
-      const items = document.querySelectorAll(".payment-settings-item");
-      items.forEach(item => {
-        const id = item.getAttribute("data-id");
-        const enabled = item.querySelector(".payment-checkbox").checked;
-        const details = item.querySelector(".payment-details-textarea").value;
-
-        const method = state.paymentMethods.find(m => m.id === id);
-        if (method) {
-          method.enabled = enabled;
-          method.details = details;
-        }
-      });
-
-      saveState();
-      renderPaymentSelector();
-      alert("Payment settings saved successfully!");
-    });
-  }
-
-  function renderPaymentsSettingsList() {
-    const container = document.getElementById("paymentSettingsList");
-    if (!container) return;
-    container.innerHTML = "";
-
-    state.paymentMethods.forEach(method => {
-      const div = document.createElement("div");
-      div.className = "payment-settings-item";
-      div.setAttribute("data-id", method.id);
-
-      const iconHtml = method.image 
-        ? `<img src="${method.image}" alt="${method.name}">`
-        : `<i class="${method.icon}"></i>`;
-
-      div.innerHTML = `
-        <div class="payment-settings-header">
-          <span>${iconHtml} ${method.name}</span>
-          <label class="switch">
-            <input type="checkbox" class="payment-checkbox" ${method.enabled ? 'checked' : ''}>
-            <span class="slider-switch"></span>
-          </label>
-        </div>
-        <textarea class="payment-details-textarea" rows="3" style="font-size:0.85rem;" placeholder="Payment instructions...">${method.details}</textarea>
-      `;
-      container.appendChild(div);
-    });
-  }
-
-  // -------------------------------------------------------------
-  // FORM & INPUT SETUPS
-  // -------------------------------------------------------------
   function setDateMinValues() {
     const checkIn = document.getElementById("checkin");
     const checkOut = document.getElementById("checkout");
     if (!checkIn || !checkOut) return;
 
-    const now = new Date();
-    const isoToday = now.toISOString().split("T")[0];
-    checkIn.min = isoToday;
-    checkOut.min = isoToday;
+    const today = new Date().toISOString().split("T")[0];
+    checkIn.min = today;
+    checkOut.min = today;
 
     checkIn.addEventListener("change", function () {
-      checkOut.min = checkIn.value || isoToday;
+      checkOut.min = checkIn.value || today;
       if (checkOut.value && checkOut.value < checkIn.value) {
         checkOut.value = checkIn.value;
       }
@@ -1272,35 +296,36 @@
       bookingForm.addEventListener("submit", function (event) {
         event.preventDefault();
         const data = new FormData(bookingForm);
-        
-        const checkin = data.get("checkin") || "";
-        const checkout = data.get("checkout") || "";
-        const breakdown = calculateStayBreakdown(checkin, checkout);
-        const paymentMethod = data.get("payment_method") || "Not selected";
-
-        let priceMessagePart = "";
-        if (breakdown) {
-          priceMessagePart = `\nPrice Details:\n - Total Nights: ${breakdown.totalNights}\n - Estimated Cost: K${breakdown.totalCost.toLocaleString()}`;
-          let breakdownList = [];
-          for (let rate in breakdown.breakdown) {
-            breakdownList.push(`   (${breakdown.breakdown[rate]} night(s) @ K${Number(rate).toLocaleString()}/night)`);
-          }
-          priceMessagePart += "\n" + breakdownList.join("\n");
-        }
-
+        const bookingPayload = {
+          name: (data.get("name") || "").toString().trim(),
+          phone: (data.get("phone") || "").toString().trim(),
+          email: (data.get("email") || "").toString().trim(),
+          apartment: (data.get("apartment") || "").toString().trim(),
+          guests: (data.get("guests") || "").toString().trim(),
+          checkin: (data.get("checkin") || "").toString().trim(),
+          checkout: (data.get("checkout") || "").toString().trim(),
+          request: (data.get("request") || "").toString().trim(),
+          payment_method: (data.get("payment_method") || "").toString().trim(),
+          status: "new"
+        };
         const message = [
           "Hello M KAY APARTMENTS LTD, I would like to reserve an apartment.",
-          "Name: " + (data.get("name") || ""),
-          "Phone: " + (data.get("phone") || ""),
-          "Email: " + (data.get("email") || "Not provided"),
-          "Apartment: " + (data.get("apartment") || ""),
-          "Guests: " + (data.get("guests") || ""),
-          "Check-in: " + checkin,
-          "Check-out: " + checkout,
-          priceMessagePart,
-          "Preferred Payment: " + paymentMethod,
-          "Special Request: " + (data.get("request") || "None")
+          "Name: " + (bookingPayload.name || ""),
+          "Phone: " + (bookingPayload.phone || ""),
+          "Email: " + (bookingPayload.email || "Not provided"),
+          "Apartment: " + (bookingPayload.apartment || ""),
+          "Guests: " + (bookingPayload.guests || ""),
+          "Check-in: " + (bookingPayload.checkin || ""),
+          "Check-out: " + (bookingPayload.checkout || ""),
+          "Payment Method: " + (bookingPayload.payment_method || ""),
+          "Special Request: " + (bookingPayload.request || "None")
         ].join("\n");
+
+        getFirebaseApi().then(firebaseApi => {
+          if (firebaseApi?.addBooking) {
+            firebaseApi.addBooking(bookingPayload).catch(err => console.warn("Failed to save booking:", err));
+          }
+        });
 
         window.open(whatsappBase + encodeURIComponent(message), "_blank", "noopener");
       });
@@ -1322,310 +347,1858 @@
     }
   }
 
-  function setFooterYear() {
-    const yearNode = document.getElementById("year");
-    if (yearNode) {
-      yearNode.textContent = String(new Date().getFullYear());
-    }
+  async function getFirebaseApi() {
+    if (window.firebaseApi) return window.firebaseApi;
+    if (window.firebaseApiReady) return await window.firebaseApiReady;
+    return null;
   }
 
-  // -------------------------------------------------------------
-  // CMS DASHBOARD RENDER & SETUP
-  // -------------------------------------------------------------
-  function renderCmsPanels() {
-    if (!state.hero) return; // Wait for state to be fully loaded
-
-    // Hero
-    document.getElementById("heroKickerInput").value = state.hero.kicker || "";
-    document.getElementById("heroHeadlineInput").value = state.hero.headline || "";
-    document.getElementById("heroSubtitleInput").value = state.hero.subtitle || "";
-    renderRepeater("heroStatsList", state.hero.statPills || [], ["icon", "text"]);
-
-    // About
-    document.getElementById("aboutTitleInput").value = state.about.title || "";
-    document.getElementById("aboutP1Input").value = state.about.paragraphs?.[0] || "";
-    document.getElementById("aboutP2Input").value = state.about.paragraphs?.[1] || "";
-    document.getElementById("aboutImg1Input").value = state.about.images?.[0] || "";
-    document.getElementById("aboutImg2Input").value = state.about.images?.[1] || "";
-    document.getElementById("aboutImg3Input").value = state.about.images?.[2] || "";
-    renderRepeater("aboutFeaturesList", state.about.features || [], ["icon", "text"]);
-
-    // Arrays
-    renderRepeater("amenitiesList", state.amenities || [], ["icon", "name"]);
-    renderRepeater("activitiesList", state.activities || [], ["image", "title"]);
-    renderRepeater("reviewsList", state.testimonials || [], ["name", "rating", "text", "image"]);
-    renderRepeater("faqList", state.faq || [], ["question", "answer"]);
-    
-    // Contact
-    document.getElementById("contactPhoneInput").value = state.contact.phone || "";
-    document.getElementById("contactWhatsappInput").value = state.contact.whatsapp || "";
-    document.getElementById("contactEmailInput").value = state.contact.email || "";
-    document.getElementById("contactFacebookInput").value = state.contact.facebook || "";
-    document.getElementById("contactAddressInput").value = state.contact.address || "";
-    document.getElementById("contactPersonInput").value = state.contact.contactPerson || "";
-    document.getElementById("contactFooterInput").value = state.contact.footerDescription || "";
-  }
-
-  function renderRepeater(containerId, items, fields) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = "";
-    items.forEach((item, index) => {
-      const div = document.createElement("div");
-      div.className = "repeater-item";
-      let inputsHtml = "";
-      fields.forEach(f => {
-        inputsHtml += `<label style="width: 100%; text-transform: capitalize;">${f}
-          <input type="${f === 'rating' ? 'number' : 'text'}" class="rep-input-${f}" value="${item[f] || ''}" style="width: 100%;">
-        </label>`;
-      });
-      div.innerHTML = `
-        ${inputsHtml}
-        <button class="remove-btn" title="Remove" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
-      `;
-      container.appendChild(div);
-    });
-  }
-
-  function getRepeaterItems(containerId, fields) {
-    const container = document.getElementById(containerId);
-    if (!container) return [];
-    const items = [];
-    container.querySelectorAll(".repeater-item").forEach(div => {
-      const item = {};
-      fields.forEach(f => {
-        const input = div.querySelector(`.rep-input-${f}`);
-        if (input) item[f] = f === 'rating' ? Number(input.value) : input.value;
-      });
-      items.push(item);
-    });
-    return items;
-  }
-
-  function renderWebsiteContent() {
-    if (!state.hero) return;
-
-    // Hero
-    const heroKicker = document.querySelector(".hero-kicker");
-    if (heroKicker) heroKicker.innerHTML = state.hero.kicker;
-    const heroHeadline = document.querySelector(".hero-content h1");
-    if (heroHeadline) heroHeadline.innerHTML = state.hero.headline;
-    const heroSub = document.querySelector(".hero-sub");
-    if (heroSub) heroSub.innerHTML = state.hero.subtitle;
-    
-    const heroStatsContainer = document.querySelector(".hero-stats");
-    if (heroStatsContainer) {
-      heroStatsContainer.innerHTML = state.hero.statPills.map(p => `
-        <article class="stat-pill reveal active">
-          <i class="${p.icon}"></i>
-          <span>${p.text}</span>
-        </article>
-      `).join('');
-    }
-
-    // About
-    const aboutTitle = document.querySelector("#about h2");
-    if (aboutTitle) aboutTitle.innerHTML = state.about.title;
-    const aboutContent = document.querySelector("#about .split-content");
-    if (aboutContent) {
-      const ps = aboutContent.querySelectorAll("p");
-      if (ps[0]) ps[0].innerHTML = state.about.paragraphs[0] || "";
-      if (ps[1]) ps[1].innerHTML = state.about.paragraphs[1] || "";
-      
-      const featuresBox = aboutContent.querySelector(".feature-points");
-      if (featuresBox) {
-        featuresBox.innerHTML = state.about.features.map(f => `<div><i class="${f.icon}"></i>${f.text}</div>`).join('');
+  async function updateFirebaseLoginState() {
+    if (!hostEls.loginBtn) return;
+    hostEls.loginBtn.disabled = true;
+    hostEls.loginBtn.textContent = "Loading...";
+    try {
+      const firebaseApi = await getFirebaseApi();
+      if (firebaseApi?.signInAdmin) {
+        hostEls.loginBtn.disabled = false;
+        hostEls.loginBtn.textContent = "Access";
+        if (hostEls.loginError && hostEls.loginError.textContent === "Firebase Auth is not ready yet.") {
+          showLoginError("");
+        }
+        return;
       }
-    }
-    const aboutImages = document.querySelectorAll("#about .image-stack img");
-    if (aboutImages.length >= 3) {
-      aboutImages[0].src = state.about.images[0];
-      aboutImages[1].src = state.about.images[1];
-      aboutImages[2].src = state.about.images[2];
-    }
-
-    renderApartmentCards();
-    renderApartmentOptions();
-
-    // Amenities
-    const amenitiesGrid = document.querySelector(".amenities-grid");
-    if (amenitiesGrid) {
-      amenitiesGrid.innerHTML = state.amenities.map(a => `
-        <article class="amenity-card reveal active"><i class="${a.icon}"></i><h3>${a.name}</h3></article>
-      `).join('');
-    }
-
-    // Activities
-    const activitiesGrid = document.querySelector(".activities-grid");
-    if (activitiesGrid) {
-      activitiesGrid.innerHTML = state.activities.map(a => `
-        <article class="activity-card reveal active">
-          <img src="${a.image}" alt="${a.title}" loading="lazy">
-          <div><h3>${a.title}</h3><a href="https://wa.me/${state.contact.whatsapp}?text=Hello%2C%20I%20would%20like%20to%20arrange%20${encodeURIComponent(a.title)}." target="_blank" rel="noopener">Arrange Activity</a></div>
-        </article>
-      `).join('');
-    }
-
-    // Reviews
-    const reviewsTrack = document.getElementById("testimonialTrack");
-    if (reviewsTrack) {
-      reviewsTrack.innerHTML = state.testimonials.map(t => `
-        <article class="testimonial-card">
-          <img src="${t.image}" alt="Guest" loading="lazy">
-          <h3>${t.name}</h3>
-          <p class="stars">${'&#9733;'.repeat(t.rating)}</p>
-          <p>${t.text}</p>
-        </article>
-      `).join('');
-    }
-
-    // FAQ
-    const faqList = document.querySelector(".faq-list");
-    if (faqList) {
-      faqList.innerHTML = state.faq.map(f => `
-        <article class="faq-item reveal active">
-          <button class="faq-question">${f.question}<span>+</span></button>
-          <div class="faq-answer">${f.answer}</div>
-        </article>
-      `).join('');
-      initFaqAccordion(); // Re-bind events
-    }
-
-    // Contact & Footer
-    const contactCards = document.querySelector(".contact-cards");
-    if (contactCards) {
-      contactCards.innerHTML = `
-        <article><i class="fa-solid fa-phone"></i><h3>Reservations Phone</h3><a href="tel:${state.contact.phone}">${state.contact.phone}</a></article>
-        <article><i class="fa-brands fa-whatsapp"></i><h3>WhatsApp</h3><a href="https://wa.me/${state.contact.whatsapp}" target="_blank" rel="noopener">+${state.contact.whatsapp}</a></article>
-        <article><i class="fa-solid fa-envelope"></i><h3>Email</h3><a href="mailto:${state.contact.email}">${state.contact.email}</a></article>
-        <article><i class="fa-brands fa-facebook-f"></i><h3>Facebook</h3><a href="${state.contact.facebook}" target="_blank" rel="noopener">Visit Facebook Page</a></article>
-      `;
-    }
-    
-    const footerBlocks = document.querySelectorAll(".footer-grid > div");
-    if (footerBlocks.length >= 3) {
-      footerBlocks[0].querySelector("p").innerHTML = state.contact.footerDescription;
-      footerBlocks[1].querySelector("p").innerHTML = state.contact.address;
-      
-      const pElements = footerBlocks[2].querySelectorAll("p");
-      if (pElements.length >= 2) {
-        pElements[0].innerHTML = state.contact.contactPerson;
-        pElements[1].innerHTML = `<a href="tel:${state.contact.phone}">${state.contact.phone}</a>`;
+      hostEls.loginBtn.textContent = "Access";
+      if (window.firebaseInitStatus === "error") {
+        showLoginError(window.firebaseInitError || "Firebase could not initialize. Check your config and refresh.");
+      } else {
+        showLoginError("");
       }
+    } catch (err) {
+      hostEls.loginBtn.textContent = "Access";
+      showLoginError(window.firebaseInitError || err.message || "Firebase is still loading.");
+    } finally {
+      hostEls.loginBtn.disabled = false;
+      if (!hostEls.loginBtn.textContent) hostEls.loginBtn.textContent = "Access";
     }
   }
 
-  function setupCmsActions() {
-    // Add Buttons
-    document.getElementById("addHeroStatBtn")?.addEventListener("click", () => {
-      state.hero.statPills.push({ icon: "", text: "" });
-      renderCmsPanels();
-    });
-    document.getElementById("addAboutFeatureBtn")?.addEventListener("click", () => {
-      state.about.features.push({ icon: "", text: "" });
-      renderCmsPanels();
-    });
-    document.getElementById("addAmenityBtn")?.addEventListener("click", () => {
-      state.amenities.push({ icon: "", name: "" });
-      renderCmsPanels();
-    });
-    document.getElementById("addActivityBtn")?.addEventListener("click", () => {
-      state.activities.push({ image: "", title: "" });
-      renderCmsPanels();
-    });
-    document.getElementById("addReviewBtn")?.addEventListener("click", () => {
-      state.testimonials.push({ name: "", rating: 5, text: "", image: "" });
-      renderCmsPanels();
-    });
-    document.getElementById("addFaqBtn")?.addEventListener("click", () => {
-      state.faq.push({ question: "", answer: "" });
-      renderCmsPanels();
-    });
+  const yearNode = document.getElementById("year");
+  if (yearNode) yearNode.textContent = String(new Date().getFullYear());
 
-    // Save Buttons
-    document.getElementById("saveHeroBtn")?.addEventListener("click", () => {
-      state.hero.kicker = document.getElementById("heroKickerInput").value;
-      state.hero.headline = document.getElementById("heroHeadlineInput").value;
-      state.hero.subtitle = document.getElementById("heroSubtitleInput").value;
-      state.hero.statPills = getRepeaterItems("heroStatsList", ["icon", "text"]);
-      saveState();
-      alert("Hero saved!");
-      renderWebsiteContent(); // Refresh frontend
-    });
-
-    document.getElementById("saveAboutBtn")?.addEventListener("click", () => {
-      state.about.title = document.getElementById("aboutTitleInput").value;
-      state.about.paragraphs = [
-        document.getElementById("aboutP1Input").value,
-        document.getElementById("aboutP2Input").value
-      ];
-      state.about.images = [
-        document.getElementById("aboutImg1Input").value,
-        document.getElementById("aboutImg2Input").value,
-        document.getElementById("aboutImg3Input").value
-      ];
-      state.about.features = getRepeaterItems("aboutFeaturesList", ["icon", "text"]);
-      saveState();
-      alert("About saved!");
-      renderWebsiteContent();
-    });
-
-    document.getElementById("saveAmenitiesBtn")?.addEventListener("click", () => {
-      state.amenities = getRepeaterItems("amenitiesList", ["icon", "name"]);
-      saveState();
-      alert("Amenities saved!");
-      renderWebsiteContent();
-    });
-
-    document.getElementById("saveActivitiesBtn")?.addEventListener("click", () => {
-      state.activities = getRepeaterItems("activitiesList", ["image", "title"]);
-      saveState();
-      alert("Activities saved!");
-      renderWebsiteContent();
-    });
-
-    document.getElementById("saveReviewsBtn")?.addEventListener("click", () => {
-      state.testimonials = getRepeaterItems("reviewsList", ["name", "rating", "text", "image"]);
-      saveState();
-      alert("Reviews saved!");
-      renderWebsiteContent();
-    });
-
-    document.getElementById("saveFaqBtn")?.addEventListener("click", () => {
-      state.faq = getRepeaterItems("faqList", ["question", "answer"]);
-      saveState();
-      alert("FAQ saved!");
-      renderWebsiteContent();
-    });
-
-    document.getElementById("saveContactBtn")?.addEventListener("click", () => {
-      state.contact.phone = document.getElementById("contactPhoneInput").value;
-      state.contact.whatsapp = document.getElementById("contactWhatsappInput").value;
-      state.contact.email = document.getElementById("contactEmailInput").value;
-      state.contact.facebook = document.getElementById("contactFacebookInput").value;
-      state.contact.address = document.getElementById("contactAddressInput").value;
-      state.contact.contactPerson = document.getElementById("contactPersonInput").value;
-      state.contact.footerDescription = document.getElementById("contactFooterInput").value;
-      saveState();
-      alert("Contact info saved!");
-      renderWebsiteContent();
-    });
-  }
-
-  // -------------------------------------------------------------
-  // SYSTEM STARTUP INITS
-  // -------------------------------------------------------------
-  await loadState();
-  renderCustomGallery();
-  renderPaymentSelector();
-  setDateMinValues();
-  initCalendar();
-  initBookingForms();
-  initHostDashboard();
   initApartmentSliders();
   initCounters();
   initTestimonials();
   initFaqAccordion();
-  setFooterYear();
-})();
+  initLightbox();
+  setDateMinValues();
+  initBookingForms();
+  const DEFAULT_PAYMENT_METHODS = [
+    {
+      id: "mtn",
+      name: "MTN Mobile Money",
+      icon: "fa-solid fa-mobile-screen-button",
+      image: "payments icon/mtn-new-logo.svg",
+      enabled: true,
+      details: "Send to MTN Mobile Money:\nMerchant Code / Number: +260 764336304\nName: M Kay Apartments Ltd"
+    },
+    {
+      id: "airtel",
+      name: "Airtel Money",
+      icon: "fa-solid fa-mobile-screen-button",
+      image: "payments icon/Airtel_logo-02.png",
+      enabled: true,
+      details: "Send to Airtel Money:\nNumber: +260 978176858\nName: Masozi Kamanga"
+    },
+    {
+      id: "fnb",
+      name: "FNB Bank Transfer",
+      icon: "fa-solid fa-building-columns",
+      image: "payments icon/FNB-Logo.png",
+      enabled: true,
+      details: "Bank: First National Bank (FNB)\nAccount: 62981726354\nBranch: Livingstone\nName: M KAY APARTMENTS LTD"
+    },
+    {
+      id: "visa",
+      name: "Visa",
+      icon: "fa-brands fa-cc-visa",
+      image: "payments icon/Visa_Inc-_idDUM8TcN7_1.png",
+      enabled: true,
+      details: "We will email/WhatsApp you a secure payment link to pay with your Visa card."
+    },
+    {
+      id: "mastercard",
+      name: "Mastercard",
+      icon: "fa-brands fa-cc-mastercard",
+      image: "payments icon/Mastercard_Symbol_1.png",
+      enabled: true,
+      details: "We will email/WhatsApp you a secure payment link to pay with your Mastercard."
+    },
+    {
+      id: "cash",
+      name: "Cash on Arrival",
+      icon: "fa-solid fa-money-bill-wave",
+      enabled: true,
+      details: "Pay cash in Zambian Kwacha (K) or USD upon arrival at check-in."
+    }
+  ];
 
+  const PUBLIC_GALLERY_FALLBACK = Array.from(document.querySelectorAll("#gallery .gallery-item")).map(item => {
+    const img = item.querySelector("img");
+    const caption = item.querySelector("figcaption");
+    return {
+      src: img?.getAttribute("src") || "",
+      alt: img?.getAttribute("alt") || "Gallery image",
+      caption: caption?.textContent || ""
+    };
+  }).filter(photo => photo.src);
+
+  const bookingCalendar = {
+    year: new Date().getFullYear(),
+    month: new Date().getMonth()
+  };
+
+  const bookingSelection = {
+    start: null,
+    end: null
+  };
+
+  const DEFAULT_APARTMENTS = [
+    {
+      name: "Executive Comfort Suite",
+      priceLabel: "K2,000 / night",
+      badge: "Available Tonight",
+      features: [
+        "Air-conditioned rooms",
+        "Smart TV with Netflix",
+        "Starlink high-speed internet",
+        "Modern kitchen and clean bathroom"
+      ],
+      images: [
+        "assets/630362444_122164141550841441_5390268530041289102_n.jpg",
+        "assets/628303594_122164141568841441_8306337482201048236_n.jpg",
+        "assets/629226266_122164141592841441_2117617871875713527_n.jpg"
+      ]
+    },
+    {
+      name: "Family Premium Apartment",
+      priceLabel: "K2,000 / night",
+      badge: "High Demand",
+      features: [
+        "Spacious family-friendly living area",
+        "Comfortable beds and fresh interiors",
+        "Backup power and hot water",
+        "Secure and quiet environment"
+      ],
+      images: [
+        "assets/628390692_122164141604841441_719272422453125891_n.jpg",
+        "assets/628418418_122164141634841441_8295295334317346115_n.jpg",
+        "assets/629222782_122164141676841441_4548154573022666384_n.jpg"
+      ]
+    },
+    {
+      name: "Signature Getaway Apartment",
+      priceLabel: "K2,000 / night",
+      badge: "Ready to Book",
+      features: [
+        "Luxury finishes and modern furniture",
+        "Full kitchen and dining convenience",
+        "Strong WiFi for remote work",
+        "Ideal for couples and business travelers"
+      ],
+      images: [
+        "assets/629248919_122164141658841441_2851255111157590005_n.jpg",
+        "assets/629254608_122164141694841441_8967582750012875948_n.jpg",
+        "assets/627265331_122164141766841441_3315502584912791369_n.jpg"
+      ]
+    }
+  ];
+
+  function cloneDefaultApartments() {
+    return DEFAULT_APARTMENTS.map(apartment => ({
+      ...apartment,
+      features: [...(apartment.features || [])],
+      images: [...(apartment.images || [])]
+    }));
+  }
+
+  let publicCmsState = null;
+  let availablePaymentMethods = [];
+  let publicCmsUnsub = null;
+  let publicGalleryUnsub = null;
+  const CMS_CACHE_KEY = "mkay-cms-cache-v2";
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function formatCurrency(amount) {
+    return `K${Number(amount || 0).toLocaleString()}`;
+  }
+
+  function normalizePublicState(raw) {
+    const state = raw || {};
+    return {
+      basePrice: Number(state.basePrice || 2000),
+      seasonalRules: Array.isArray(state.seasonalRules) && state.seasonalRules.length ? state.seasonalRules : [{ month: 7, price: 2500, enabled: true }],
+      blockedRanges: Array.isArray(state.blockedRanges) ? state.blockedRanges : [],
+      paymentMethods: Array.isArray(state.paymentMethods) && state.paymentMethods.length ? state.paymentMethods : DEFAULT_PAYMENT_METHODS,
+      customPhotos: Array.isArray(state.customPhotos) ? state.customPhotos : [],
+      hero: state.hero || {},
+      about: state.about || {},
+      apartments: Array.isArray(state.apartments) && state.apartments.length ? state.apartments : cloneDefaultApartments(),
+      amenities: Array.isArray(state.amenities) ? state.amenities : [],
+      activities: Array.isArray(state.activities) ? state.activities : [],
+      activitiesSection: state.activitiesSection || {
+        kicker: "Livingstone Experiences",
+        headline: "Adventure Starts Here",
+        subtitle: "Turn your stay into a full travel story with unforgettable local activities."
+      },
+      testimonials: Array.isArray(state.testimonials) ? state.testimonials : [],
+      faq: Array.isArray(state.faq) ? state.faq : [],
+      contact: state.contact || {}
+    };
+  }
+
+  function loadCachedCmsState() {
+    try {
+      const cached = localStorage.getItem(CMS_CACHE_KEY);
+      if (!cached) return null;
+      return JSON.parse(cached);
+    } catch {
+      return null;
+    }
+  }
+
+  function saveCachedCmsState(state) {
+    try {
+      localStorage.setItem(CMS_CACHE_KEY, JSON.stringify(state));
+    } catch {
+      // Ignore cache write failures.
+    }
+  }
+
+  function parseDateInput(value) {
+    if (!value) return null;
+    const parsed = new Date(`${value}T00:00:00`);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  function toISODate(date) {
+    return date.toISOString().slice(0, 10);
+  }
+
+  let publicBookings = [];
+  let publicBlockedDates = [];
+  let publicPricing = [];
+  let publicGallery = [];
+  let publicCalendarInstance = null;
+
+  function getSeasonalRateForMonth(date, state) {
+    if (!date) return Number(state?.basePrice || 2000);
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    const customRate = publicPricing.find(p => Number(p.month) === month && Number(p.year) === year);
+    if (customRate) return Number(customRate.nightlyRate);
+
+    // Fallback to legacy state.seasonalRules
+    const rule = (state?.seasonalRules || []).find(item => Number(item.month) === date.getMonth() && item.enabled !== false);
+    return Number(rule?.price || state?.basePrice || 2000);
+  }
+
+  function isDateBlocked(date, state) {
+    const current = date.getTime();
+    
+    // Check legacy state blockedRanges
+    const isBlockedInCms = (state.blockedRanges || []).some(range => {
+      const start = parseDateInput(range.start);
+      const end = parseDateInput(range.end);
+      return start && end && current >= start.getTime() && current <= end.getTime();
+    });
+    if (isBlockedInCms) return true;
+
+    // Check new Firestore blockedDates collection
+    const checkDateStr = toISODate(date);
+    const isBlockedInCollection = publicBlockedDates.some(range => {
+      return checkDateStr >= range.startDate && checkDateStr <= range.endDate;
+    });
+    if (isBlockedInCollection) return true;
+
+    // Check confirmed bookings
+    const isBooked = publicBookings.some(booking => {
+      if (booking.status !== 'confirmed' && booking.status !== 'new') return false;
+      return checkDateStr >= booking.checkin && checkDateStr < booking.checkout; // Checkout is exclusive for guests leaving that morning
+    });
+    if (isBooked) return true;
+
+    return false;
+  }
+
+  function intersectsBlockedRange(start, end, state) {
+    if (!start || !end) return false;
+    const day = new Date(start);
+    while (day < end) {
+      if (isDateBlocked(day, state)) return true;
+      day.setDate(day.getDate() + 1);
+    }
+    return false;
+  }
+
+  function buildRateGroups(start, end, state) {
+    const groups = [];
+    const day = new Date(start);
+    let currentGroup = null;
+
+    while (day < end) {
+      const rate = getSeasonalRateForMonth(day, state);
+      const label = day.toLocaleString("en", { month: "short" });
+      const key = `${rate}-${day.getMonth()}`;
+      if (!currentGroup || currentGroup.key !== key) {
+        currentGroup = {
+          key,
+          label,
+          rate,
+          nights: 0,
+          subtotal: 0
+        };
+        groups.push(currentGroup);
+      }
+      currentGroup.nights += 1;
+      currentGroup.subtotal += rate;
+      day.setDate(day.getDate() + 1);
+    }
+
+    return groups;
+  }
+
+  function syncBookingCalendarFromInputs() {
+    const checkIn = document.getElementById("checkin");
+    const checkOut = document.getElementById("checkout");
+    const start = parseDateInput(checkIn?.value);
+    const end = parseDateInput(checkOut?.value);
+
+    bookingSelection.start = start;
+    bookingSelection.end = end && start && end > start ? end : null;
+
+    if (start) {
+      bookingCalendar.month = start.getMonth();
+      bookingCalendar.year = start.getFullYear();
+    }
+
+    if (checkIn && bookingSelection.start) {
+      checkIn.value = toISODate(bookingSelection.start);
+    }
+    if (checkOut && bookingSelection.end) {
+      checkOut.value = toISODate(bookingSelection.end);
+    }
+
+    syncCalendarSelectionFromInputs();
+  }
+
+  function syncCalendarSelectionFromInputs() {
+    if (!publicCalendarInstance) return;
+    const checkIn = document.getElementById("checkin");
+    const checkOut = document.getElementById("checkout");
+    if (checkIn?.value && checkOut?.value) {
+      publicCalendarInstance.select(checkIn.value, checkOut.value);
+    } else {
+      publicCalendarInstance.unselect();
+    }
+  }
+
+  function renderBookingPriceBreakdown(state) {
+    const card = document.getElementById("priceBreakdownCard");
+    const details = document.getElementById("breakdownDetails");
+    const total = document.getElementById("breakdownTotalPrice");
+    if (!card || !details || !total) return;
+
+    if (!bookingSelection.start || !bookingSelection.end) {
+      card.style.display = "none";
+      details.innerHTML = "";
+      total.textContent = formatCurrency(0);
+      return;
+    }
+
+    if (intersectsBlockedRange(bookingSelection.start, bookingSelection.end, state)) {
+      card.style.display = "block";
+      details.innerHTML = "<div><span>Selected dates include an unavailable date.</span><strong>Please choose different dates</strong></div>";
+      total.textContent = "N/A";
+      return;
+    }
+
+    const groups = buildRateGroups(bookingSelection.start, bookingSelection.end, state);
+    const nights = groups.reduce((sum, group) => sum + group.nights, 0);
+    const totalAmount = groups.reduce((sum, group) => sum + group.subtotal, 0);
+
+    details.innerHTML = groups.map(group => `
+      <div>
+        <span>${escapeHtml(group.label)} - ${group.nights} night${group.nights > 1 ? "s" : ""} @ ${formatCurrency(group.rate)}</span>
+        <strong>${formatCurrency(group.subtotal)}</strong>
+      </div>
+    `).join("");
+
+    details.insertAdjacentHTML("afterbegin", `<div><span>Total nights</span><strong>${nights}</strong></div>`);
+    total.textContent = formatCurrency(totalAmount);
+    card.style.display = "block";
+  }
+
+  function renderCalendar(state) {
+    const calendarEl = document.getElementById("bookingCalendar");
+    if (!calendarEl || typeof FullCalendar === "undefined") return;
+
+    // Map bookings + blocked dates to events
+    const events = [];
+
+    // Confirmed bookings (Red) and Pending bookings (Orange)
+    publicBookings.forEach(b => {
+      let color = '#e74c3c'; // Confirmed/Booked
+      let title = 'Booked';
+      if (b.status === 'new') {
+        color = '#f39c12'; // Pending
+        title = 'Pending Booking';
+      } else if (b.status !== 'confirmed') {
+        return; // Skip completed / cancelled
+      }
+      events.push({
+        id: `b-${b.id}`,
+        title: title,
+        start: b.checkin,
+        end: b.checkout,
+        allDay: true,
+        backgroundColor: color,
+        borderColor: color,
+        display: 'background' // Display as background highlights to prevent overlapping selections
+      });
+    });
+
+    // Blocked dates (Grey)
+    publicBlockedDates.forEach(d => {
+      events.push({
+        id: `blocked-${d.id}`,
+        title: 'Unavailable',
+        start: d.startDate,
+        end: d.endDate,
+        allDay: true,
+        backgroundColor: '#666666',
+        borderColor: '#555555',
+        display: 'background'
+      });
+    });
+
+    if (!publicCalendarInstance) {
+      publicCalendarInstance = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        themeSystem: 'standard',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth'
+        },
+        selectable: true,
+        selectMirror: true,
+        unselectAuto: false,
+        selectOverlap: false, // Disallow selecting over booked/blocked dates
+        events: events,
+        selectAllow: function(selectInfo) {
+          // Additional safety check to prevent booking past dates
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          return selectInfo.start >= today;
+        },
+        select: function(info) {
+          const checkIn = document.getElementById("checkin");
+          const checkOut = document.getElementById("checkout");
+          if (checkIn && checkOut) {
+            checkIn.value = info.startStr;
+            // FullCalendar selection end is exclusive, which matches the checkout date exactly
+            checkOut.value = info.endStr;
+            
+            bookingSelection.start = new Date(info.startStr + 'T00:00:00');
+            bookingSelection.end = new Date(info.endStr + 'T00:00:00');
+            
+            renderBookingPriceBreakdown(state);
+          }
+        },
+        dayCellContent: function(arg) {
+          const date = arg.date;
+          const rate = getSeasonalRateForMonth(date, state);
+          return {
+            html: `<div class="fc-daygrid-day-number">${arg.dayNumberText}</div>
+                   <div class="calendar-day-price" style="font-size: 0.72rem; font-weight: 700; color: var(--accent); margin-top: 2px;">K${rate.toLocaleString()}</div>`
+          };
+        }
+      });
+      publicCalendarInstance.render();
+      syncCalendarSelectionFromInputs();
+    } else {
+      publicCalendarInstance.removeAllEventSources();
+      publicCalendarInstance.addEventSource(events);
+    }
+  }
+
+  function renderBookingPaymentMethods(state) {
+    const grid = document.getElementById("paymentMethodsGrid");
+    const instructions = document.getElementById("paymentInstructionsBox");
+    const hidden = document.getElementById("selectedPaymentMethodInput");
+    if (!grid || !instructions || !hidden) return;
+
+    availablePaymentMethods = (state.paymentMethods || DEFAULT_PAYMENT_METHODS).filter(method => method.enabled !== false);
+    const currentMethod = hidden.value || availablePaymentMethods[0]?.id || "";
+
+    grid.innerHTML = availablePaymentMethods.map(method => `
+      <button type="button" class="payment-method-card ${method.id === currentMethod ? "active" : ""}" data-method="${escapeHtml(method.id)}">
+        ${method.image ? `
+          <span class="payment-method-media">
+            <img class="payment-logo" src="${escapeHtml(encodeURI(method.image))}" alt="${escapeHtml(method.name)}" loading="eager" decoding="async">
+          </span>
+        ` : `
+          <span class="payment-method-media">
+            <i class="payment-fallback ${escapeHtml(method.icon || "fa-solid fa-credit-card")}"></i>
+          </span>
+        `}
+        <span>${escapeHtml(method.name)}</span>
+      </button>
+    `).join("");
+
+    grid.querySelectorAll(".payment-logo").forEach(img => {
+      const card = img.closest(".payment-method-card");
+      const markLoaded = () => card?.classList.add("image-loaded");
+      if (img.complete && img.naturalWidth > 0) {
+        markLoaded();
+      } else {
+        img.addEventListener("load", markLoaded);
+        img.addEventListener("error", () => {
+          card?.classList.remove("image-loaded");
+          img.style.display = "none";
+        });
+      }
+    });
+
+    function activateMethod(methodId) {
+      const method = availablePaymentMethods.find(item => item.id === methodId) || availablePaymentMethods[0];
+      if (!method) return;
+      hidden.value = method.id;
+      Array.from(grid.querySelectorAll(".payment-method-card")).forEach(card => {
+        card.classList.toggle("active", card.dataset.method === method.id);
+      });
+      instructions.style.display = "block";
+      instructions.innerHTML = `
+        <div class="payment-detail-head">
+          <span class="payment-detail-label">Selected payment</span>
+          <strong>${escapeHtml(method.name)}</strong>
+        </div>
+        <div class="payment-detail-body">${escapeHtml(method.details).replace(/\n/g, "<br>")}</div>
+      `;
+      instructions.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    if (!grid.dataset.bound) {
+      grid.dataset.bound = "true";
+      grid.addEventListener("click", function (event) {
+        const card = event.target.closest(".payment-method-card");
+        if (!card) return;
+        activateMethod(card.dataset.method);
+      });
+    }
+
+    activateMethod(currentMethod);
+  }
+
+  function renderPublicCms(state) {
+    const heroBg = document.querySelector(".hero-bg");
+    const heroKicker = document.querySelector(".hero-kicker");
+    const heroTitle = document.querySelector(".hero h1");
+    const heroSubtitle = document.querySelector(".hero-sub");
+    const heroStats = document.querySelector(".hero-stats");
+    const aboutTitle = document.querySelector("#about h2");
+    const aboutParagraphs = document.querySelectorAll("#about .split-content p");
+    const aboutFeatures = document.querySelector("#about .feature-points");
+    const aboutImages = document.querySelectorAll("#about .image-stack img");
+    const apartmentGrid = document.querySelector("#apartments .apartment-grid");
+    const amenitiesGrid = document.querySelector("#amenities .amenities-grid");
+    const activitiesGrid = document.querySelector("#activities .activities-grid");
+    const activitiesKicker = document.querySelector("#activities .section-tag");
+    const activitiesTitle = document.querySelector("#activities h2");
+    const activitiesSubtitle = document.querySelector("#activities .section-heading p");
+    const testimonialsTrack = document.getElementById("testimonialTrack");
+    const faqList = document.querySelector("#faq .faq-list");
+    const galleryGrid = document.querySelector("#gallery .gallery-grid");
+    const contactCards = document.querySelector("#contact .contact-cards");
+    const footerGrid = document.querySelector(".site-footer .footer-grid");
+    const apartmentSelect = document.getElementById("apartmentSelect");
+
+    const firstGalleryImage = (publicGallery || [])[0]?.imageUrl;
+    const heroImage = firstGalleryImage || state.customPhotos[0]?.src || state.apartments[0]?.images?.[0] || state.about.images?.[0] || PUBLIC_GALLERY_FALLBACK[0]?.src;
+    if (heroBg && heroImage) {
+      heroBg.style.backgroundImage = `url("${heroImage}")`;
+    }
+
+    if (heroKicker) heroKicker.textContent = state.hero.kicker || heroKicker.textContent;
+    if (heroTitle) heroTitle.textContent = state.hero.headline || heroTitle.textContent;
+    if (heroSubtitle) heroSubtitle.textContent = state.hero.subtitle || heroSubtitle.textContent;
+    if (heroStats && Array.isArray(state.hero.statPills) && state.hero.statPills.length) {
+      heroStats.innerHTML = state.hero.statPills.map(stat => `
+        <article class="stat-pill reveal active">
+          <i class="${escapeHtml(stat.icon || "fa-solid fa-star")}"></i>
+          <span>${escapeHtml(stat.text || "")}</span>
+        </article>
+      `).join("");
+    }
+
+    if (aboutTitle) aboutTitle.textContent = state.about.title || aboutTitle.textContent;
+    if (aboutParagraphs[0]) aboutParagraphs[0].textContent = state.about.paragraphs?.[0] || aboutParagraphs[0].textContent;
+    if (aboutParagraphs[1]) aboutParagraphs[1].textContent = state.about.paragraphs?.[1] || aboutParagraphs[1].textContent;
+    if (aboutFeatures && Array.isArray(state.about.features) && state.about.features.length) {
+      aboutFeatures.innerHTML = state.about.features.map(feature => `
+        <div><i class="${escapeHtml(feature.icon || "fa-solid fa-check")}"></i>${escapeHtml(feature.text || "")}</div>
+      `).join("");
+    }
+    if (aboutImages[0] && state.about.images?.[0]) aboutImages[0].src = state.about.images[0];
+    if (aboutImages[1] && state.about.images?.[1]) aboutImages[1].src = state.about.images[1];
+    if (aboutImages[2] && state.about.images?.[2]) aboutImages[2].src = state.about.images[2];
+
+    if (apartmentGrid && Array.isArray(state.apartments) && state.apartments.length) {
+      apartmentGrid.innerHTML = state.apartments.map(apartment => `
+        <article class="apartment-card reveal active">
+          <div class="availability available">${escapeHtml(apartment.badge || "Available")}</div>
+          <div class="apartment-slider" data-slider>
+            <div class="slider-track">
+              ${(apartment.images || []).map(image => `<img src="${escapeHtml(image)}" alt="${escapeHtml(apartment.name)}" loading="lazy">`).join("")}
+            </div>
+            <button class="slider-btn prev" data-prev aria-label="Previous image"><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="slider-btn next" data-next aria-label="Next image"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+          <div class="apartment-body">
+            <h3>${escapeHtml(apartment.name || "")}</h3>
+            <p class="price">${escapeHtml(apartment.priceLabel || `${formatCurrency(state.basePrice)} / night`)} <span></span></p>
+            <ul>${(apartment.features || []).map(feature => `<li>${escapeHtml(feature)}</li>`).join("")}</ul>
+            <a class="btn btn-sm" href="https://wa.me/${String(state.contact.whatsapp || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Hello M KAY APARTMENTS, I want to book the ${apartment.name}.`)}" target="_blank" rel="noopener">Book Now</a>
+          </div>
+        </article>
+      `).join("");
+      initApartmentSliders();
+    }
+
+    if (apartmentSelect && Array.isArray(state.apartments) && state.apartments.length) {
+      const currentValue = apartmentSelect.value;
+      apartmentSelect.innerHTML = `<option value="">Select apartment</option>` + state.apartments.map(apartment => `
+        <option value="${escapeHtml(apartment.name)}">${escapeHtml(apartment.name)}</option>
+      `).join("");
+      if (currentValue && [...apartmentSelect.options].some(o => o.value === currentValue)) {
+        apartmentSelect.value = currentValue;
+      }
+    }
+
+    if (amenitiesGrid && Array.isArray(state.amenities) && state.amenities.length) {
+      amenitiesGrid.innerHTML = state.amenities.map(amenity => `
+        <article class="amenity-card reveal active"><i class="${escapeHtml(amenity.icon || "fa-solid fa-star")}"></i><h3>${escapeHtml(amenity.name || "")}</h3></article>
+      `).join("");
+    }
+
+    if (activitiesKicker) activitiesKicker.textContent = state.activitiesSection?.kicker || "Livingstone Experiences";
+    if (activitiesTitle) activitiesTitle.textContent = state.activitiesSection?.headline || "Adventure Starts Here";
+    if (activitiesSubtitle) activitiesSubtitle.textContent = state.activitiesSection?.subtitle || "Turn your stay into a full travel story with unforgettable local activities.";
+
+    if (activitiesGrid && Array.isArray(state.activities)) {
+      activitiesGrid.innerHTML = state.activities.map(activity => `
+        <article class="activity-card reveal active">
+          <img src="${escapeHtml(activity.image || "")}" alt="${escapeHtml(activity.title || "")}" loading="lazy">
+          <div><h3>${escapeHtml(activity.title || "")}</h3><a href="https://wa.me/${String(state.contact.whatsapp || "").replace(/\D/g, "")}?text=${encodeURIComponent(`Hello, I would like to arrange ${activity.title}.`)}" target="_blank" rel="noopener">Arrange Activity</a></div>
+        </article>
+      `).join("");
+    }
+
+    if (testimonialsTrack && Array.isArray(state.testimonials) && state.testimonials.length) {
+      testimonialsTrack.innerHTML = state.testimonials.map(review => `
+        <article class="testimonial-card">
+          <img src="${escapeHtml(review.image || "")}" alt="${escapeHtml(review.name || "Guest")}" loading="lazy">
+          <h3>${escapeHtml(review.name || "")}</h3>
+          <p class="stars">${"&#9733;".repeat(Math.max(1, Number(review.rating || 5)))}</p>
+          <p>${escapeHtml(review.text || "")}</p>
+        </article>
+      `).join("");
+    }
+
+    if (faqList && Array.isArray(state.faq) && state.faq.length) {
+      faqList.innerHTML = state.faq.map(item => `
+        <article class="faq-item reveal active">
+          <button class="faq-question">${escapeHtml(item.question || "")}<span>+</span></button>
+          <div class="faq-answer"><p>${item.answer || ""}</p></div>
+        </article>
+      `).join("");
+    }
+
+    if (galleryGrid) {
+      const uploadedPhotos = (publicGallery || []).map(img => ({
+        src: img.imageUrl,
+        alt: img.apartmentId && img.apartmentId !== 'global' ? img.apartmentId : 'Gallery Image',
+        caption: img.apartmentId && img.apartmentId !== 'global' ? img.apartmentId : ''
+      }));
+
+      // Deduplicate by src
+      const seen = new Set();
+      const galleryPhotos = [];
+      const allPhotos = [...uploadedPhotos, ...(state.customPhotos || []), ...PUBLIC_GALLERY_FALLBACK];
+      for (const photo of allPhotos) {
+        if (photo.src && !seen.has(photo.src)) {
+          seen.add(photo.src);
+          galleryPhotos.push(photo);
+        }
+      }
+
+      galleryGrid.innerHTML = galleryPhotos.map(photo => `
+        <figure class="gallery-item reveal active">
+          <img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.alt || photo.caption || "Gallery image")}" loading="lazy">
+          <figcaption>${escapeHtml(photo.caption || photo.alt || "")}</figcaption>
+        </figure>
+      `).join("");
+    }
+
+    if (contactCards) {
+      contactCards.innerHTML = `
+        <article>
+          <i class="fa-solid fa-phone"></i>
+          <h3>Reservations Phone</h3>
+          <a href="tel:${escapeHtml(state.contact.phone || "")}">${escapeHtml(state.contact.phone || "")}</a>
+        </article>
+        <article>
+          <i class="fa-brands fa-whatsapp"></i>
+          <h3>WhatsApp</h3>
+          <a href="https://wa.me/${String(state.contact.whatsapp || "").replace(/\D/g, "")}" target="_blank" rel="noopener">+${escapeHtml(String(state.contact.whatsapp || "").replace(/\D/g, ""))}</a>
+        </article>
+        <article>
+          <i class="fa-solid fa-envelope"></i>
+          <h3>Email</h3>
+          <a href="mailto:${escapeHtml(state.contact.email || "")}">${escapeHtml(state.contact.email || "")}</a>
+        </article>
+        <article>
+          <i class="fa-brands fa-facebook-f"></i>
+          <h3>Facebook</h3>
+          <a href="${escapeHtml(state.contact.facebook || "https://www.facebook.com/")}" target="_blank" rel="noopener">Visit Facebook Page</a>
+        </article>
+      `;
+    }
+
+    if (footerGrid) {
+      footerGrid.innerHTML = `
+        <div>
+          <h3>M KAY APARTMENTS LTD</h3>
+          <p>${escapeHtml(state.contact.footerDescription || "Luxury and comfort in Livingstone, Zambia for tourists, couples, families, and business travelers.")}</p>
+        </div>
+        <div>
+          <h4>Address</h4>
+          <p>${(state.contact.address || "Dambwa North Extension<br>Livingstone, Zambia, 60010")}</p>
+        </div>
+        <div>
+          <h4>Contact Person</h4>
+          <p>${escapeHtml(state.contact.contactPerson || "Masozi Kamanga")}</p>
+          <p><a href="tel:${escapeHtml(state.contact.phone || "")}">${escapeHtml(state.contact.phone || "")}</a></p>
+          <p style="margin-top: 1.2rem;"><a href="#hostDashboard" id="hostPortalBtn" style="opacity: 0.6; font-size: 0.85rem;"><i class="fa-solid fa-lock"></i> Host Portal</a></p>
+        </div>
+      `;
+    }
+
+    if (apartmentSelect && Array.isArray(state.apartments) && state.apartments.length) {
+      apartmentSelect.innerHTML = `<option value="">Select apartment</option>` + state.apartments.map(apartment => `
+        <option value="${escapeHtml(apartment.name || "")}">${escapeHtml(apartment.name || "")} - ${escapeHtml(apartment.priceLabel || `${formatCurrency(state.basePrice)} / night`)}</option>
+      `).join("");
+    }
+
+    renderBookingPaymentMethods(state);
+    renderCalendar(state);
+    renderBookingPriceBreakdown(state);
+  }
+
+  async function loadPublicCms() {
+    try {
+      const firebaseApi = await getFirebaseApi();
+      const cachedState = loadCachedCmsState() || {};
+      let data = null;
+      if (firebaseApi?.getState) {
+        data = await firebaseApi.getState();
+      }
+      publicCmsState = normalizePublicState(mergeCmsState(cachedState, data || {}));
+      renderPublicCms(publicCmsState);
+      if (!publicCmsUnsub && firebaseApi.subscribeToState) {
+        publicCmsUnsub = firebaseApi.subscribeToState(nextState => {
+          publicCmsState = normalizePublicState(mergeCmsState(loadCachedCmsState() || {}, nextState || {}));
+          renderPublicCms(publicCmsState);
+          saveCachedCmsState(publicCmsState);
+        });
+      }
+
+      // Real-time Firestore subscriptions for booking collections
+      if (firebaseApi?.subscribeBookings) {
+        firebaseApi.subscribeBookings(bookings => {
+          publicBookings = bookings;
+          if (publicCmsState) renderCalendar(publicCmsState);
+        });
+      }
+      if (firebaseApi?.subscribeBlockedDates) {
+        firebaseApi.subscribeBlockedDates(blocked => {
+          publicBlockedDates = blocked;
+          if (publicCmsState) renderCalendar(publicCmsState);
+        });
+      }
+      if (firebaseApi?.subscribePricing) {
+        firebaseApi.subscribePricing(pricing => {
+          publicPricing = pricing;
+          if (publicCmsState) renderCalendar(publicCmsState);
+        });
+      }
+      if (!publicGalleryUnsub && firebaseApi?.subscribeGallery) {
+        publicGalleryUnsub = firebaseApi.subscribeGallery(gallery => {
+          publicGallery = gallery;
+          if (publicCmsState) renderPublicCms(publicCmsState);
+        });
+      }
+
+      saveCachedCmsState(publicCmsState);
+    } catch (err) {
+      console.warn("Public CMS load skipped:", err.message);
+    }
+  }
+
+  const checkInInput = document.getElementById("checkin");
+  const checkOutInput = document.getElementById("checkout");
+  if (checkInInput && !checkInInput.dataset.bound) {
+    checkInInput.dataset.bound = "true";
+    checkInInput.addEventListener("change", function () {
+      syncBookingCalendarFromInputs();
+      if (publicCmsState) {
+        renderCalendar(publicCmsState);
+        renderBookingPriceBreakdown(publicCmsState);
+      }
+    });
+  }
+  if (checkOutInput && !checkOutInput.dataset.bound) {
+    checkOutInput.dataset.bound = "true";
+    checkOutInput.addEventListener("change", function () {
+      syncBookingCalendarFromInputs();
+      if (publicCmsState) {
+        renderCalendar(publicCmsState);
+        renderBookingPriceBreakdown(publicCmsState);
+      }
+    });
+  }
+
+  const initialPublicState = normalizePublicState({});
+  renderPublicCms(initialPublicState);
+  loadPublicCms();
+
+  const hostPortal = {
+    user: null,
+    state: null
+  };
+
+  const hostEls = {
+    modal: document.getElementById("hostDashboard"),
+    openBtn: document.getElementById("hostPortalBtn"),
+    closeBtn: document.getElementById("adminModalClose"),
+    loginBox: document.getElementById("adminLoginBox"),
+    dashboard: document.getElementById("adminDashboardContent"),
+    emailInput: document.getElementById("adminEmail"),
+    passwordInput: document.getElementById("adminPassword"),
+    loginBtn: document.getElementById("adminLoginBtn"),
+    loginError: document.getElementById("adminLoginError"),
+    heroKicker: document.getElementById("heroKickerInput"),
+    heroHeadline: document.getElementById("heroHeadlineInput"),
+    heroSubtitle: document.getElementById("heroSubtitleInput"),
+    heroStats: document.getElementById("heroStatsList"),
+    aboutTitle: document.getElementById("aboutTitleInput"),
+    aboutP1: document.getElementById("aboutP1Input"),
+    aboutP2: document.getElementById("aboutP2Input"),
+    aboutFeatures: document.getElementById("aboutFeaturesList"),
+    aboutImg1: document.getElementById("aboutImg1Input"),
+    aboutImg2: document.getElementById("aboutImg2Input"),
+    aboutImg3: document.getElementById("aboutImg3Input"),
+    apartments: document.getElementById("apartmentsList"),
+    amenities: document.getElementById("amenitiesList"),
+    activities: document.getElementById("activitiesList"),
+    reviews: document.getElementById("reviewsList"),
+    faq: document.getElementById("faqList"),
+    contactPhone: document.getElementById("contactPhoneInput"),
+    contactWhatsapp: document.getElementById("contactWhatsappInput"),
+    contactEmail: document.getElementById("contactEmailInput"),
+    contactFacebook: document.getElementById("contactFacebookInput"),
+    contactAddress: document.getElementById("contactAddressInput"),
+    contactPerson: document.getElementById("contactPersonInput"),
+    contactFooter: document.getElementById("contactFooterInput"),
+    basePrice: document.getElementById("adminBasePrice"),
+    ruleMonth: document.getElementById("ruleMonth"),
+    rulePrice: document.getElementById("rulePrice"),
+    seasonsList: document.getElementById("seasonsList"),
+    blockStart: document.getElementById("blockStart"),
+    blockEnd: document.getElementById("blockEnd"),
+    blockedList: document.getElementById("blockedRangesList"),
+    galleryUploadInput: document.getElementById("galleryUploadInput"),
+    triggerUploadBtn: document.getElementById("triggerUploadBtn"),
+    uploadStatusText: document.getElementById("uploadStatusText"),
+    customGalleryManager: document.getElementById("customGalleryManager"),
+    paymentSettingsList: document.getElementById("paymentSettingsList"),
+    bookingsTableWrapper: document.getElementById("bookingsTableWrapper"),
+    authStatusMsg: document.getElementById("authStatusMsg"),
+    refreshBookingsBtn: document.getElementById("refreshBookingsBtn"),
+    saveHeroBtn: document.getElementById("saveHeroBtn"),
+    saveAboutBtn: document.getElementById("saveAboutBtn"),
+    saveApartmentsBtn: document.getElementById("saveApartmentsBtn"),
+    saveAmenitiesBtn: document.getElementById("saveAmenitiesBtn"),
+    saveActivitiesBtn: document.getElementById("saveActivitiesBtn"),
+    saveReviewsBtn: document.getElementById("saveReviewsBtn"),
+    saveFaqBtn: document.getElementById("saveFaqBtn"),
+    saveContactBtn: document.getElementById("saveContactBtn"),
+    saveBasePriceBtn: document.getElementById("saveBasePriceBtn"),
+    savePaymentsBtn: document.getElementById("savePaymentsBtn"),
+    addHeroStatBtn: document.getElementById("addHeroStatBtn"),
+    addAboutFeatureBtn: document.getElementById("addAboutFeatureBtn"),
+    addApartmentBtn: document.getElementById("addApartmentBtn"),
+    addAmenityBtn: document.getElementById("addAmenityBtn"),
+    addActivityBtn: document.getElementById("addActivityBtn"),
+    addReviewBtn: document.getElementById("addReviewBtn"),
+    addFaqBtn: document.getElementById("addFaqBtn"),
+    addRuleBtn: document.getElementById("addRuleBtn"),
+    addBlockBtn: document.getElementById("addBlockBtn"),
+    signOutBtn: document.getElementById("signOutBtn")
+  };
+
+  updateFirebaseLoginState();
+
+  const portalSchemas = {
+    heroStats: [
+      { key: "icon", label: "Icon", placeholder: "fa-solid fa-wifi" },
+      { key: "text", label: "Text", placeholder: "Starlink WiFi" }
+    ],
+    aboutFeatures: [
+      { key: "icon", label: "Icon", placeholder: "fa-solid fa-building" },
+      { key: "text", label: "Text", placeholder: "Modern apartments" }
+    ],
+    apartments: [
+      { key: "name", label: "Name", placeholder: "Apartment name" },
+      { key: "priceLabel", label: "Price Label", placeholder: "K2,000 / night" },
+      { key: "badge", label: "Badge", placeholder: "Available Tonight" },
+      { key: "features", label: "Features", type: "csv", rows: 3, placeholder: "Feature 1, Feature 2" },
+      { key: "images", label: "Images", type: "csv", rows: 3, placeholder: "assets/img1.jpg, assets/img2.jpg" }
+    ],
+    amenities: [
+      { key: "icon", label: "Icon", placeholder: "fa-solid fa-wifi" },
+      { key: "name", label: "Name", placeholder: "Amenity name" }
+    ],
+    activities: [
+      { key: "title", label: "Title", placeholder: "Activity title" },
+      { key: "image", label: "Image URL", placeholder: "assets/photo.jpg" }
+    ],
+    reviews: [
+      { key: "name", label: "Guest Name", placeholder: "Guest name" },
+      { key: "rating", label: "Rating", type: "number", placeholder: "5" },
+      { key: "text", label: "Review Text", type: "textarea", rows: 3, placeholder: "Guest review" },
+      { key: "image", label: "Profile Image", placeholder: "assets/profile.jpg" }
+    ],
+    faq: [
+      { key: "question", label: "Question", placeholder: "FAQ question" },
+      { key: "answer", label: "Answer HTML", type: "textarea", rows: 3, placeholder: "<p>Answer content</p>" }
+    ],
+    paymentMethods: [
+      { key: "name", label: "Name", placeholder: "Payment name" },
+      { key: "enabled", label: "Enabled", type: "checkbox" },
+      { key: "icon", label: "Icon", placeholder: "fa-solid fa-mobile-screen-button" },
+      { key: "image", label: "Image URL", placeholder: "payments icon/logo.png" },
+      { key: "details", label: "Details", type: "textarea", rows: 3, placeholder: "Payment details" }
+    ]
+  };
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function getValue(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : "";
+  }
+
+  function setValue(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.value = value ?? "";
+  }
+
+  async function uploadHostFiles(files) {
+    const urls = [];
+    const firebaseApi = await getFirebaseApi();
+    if (!firebaseApi?.uploadMedia) {
+      throw new Error("Firebase Storage is not ready yet.");
+    }
+    for (const file of files || []) {
+      const payload = await firebaseApi.uploadMedia(file, "uploads");
+      urls.push(payload.url);
+    }
+    return urls;
+  }
+
+  function updateRepeaterField(container, itemIndex, fieldKey, nextValue) {
+    if (!container) return;
+    const item = container.querySelector(`.repeater-item[data-index="${itemIndex}"]`);
+    if (!item) return;
+    const field = item.querySelector(`[data-key="${fieldKey}"]`);
+    if (!field) return;
+    field.value = nextValue;
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function openMediaPicker({ multiple = false } = {}) {
+    return new Promise(resolve => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.multiple = multiple;
+      input.style.display = "none";
+      input.addEventListener("change", async function () {
+        const files = Array.from(this.files || []);
+        input.remove();
+        if (!files.length) {
+          resolve([]);
+          return;
+        }
+        try {
+          const urls = await uploadHostFiles(files);
+          resolve(urls);
+        } catch (err) {
+          alert(err.message || "Upload failed");
+          resolve([]);
+        }
+      });
+      document.body.appendChild(input);
+      input.click();
+    });
+  }
+
+  function ensureHostState(data) {
+    const source = data || {};
+    return {
+      ...source,
+      basePrice: Number(source.basePrice || 2000),
+      hero: {
+        kicker: source.hero?.kicker || "",
+        headline: source.hero?.headline || "",
+        subtitle: source.hero?.subtitle || "",
+        statPills: Array.isArray(source.hero?.statPills) ? source.hero.statPills : []
+      },
+      about: {
+        title: source.about?.title || "",
+        paragraphs: Array.isArray(source.about?.paragraphs) ? source.about.paragraphs : ["", ""],
+        features: Array.isArray(source.about?.features) ? source.about.features : [],
+        images: Array.isArray(source.about?.images) ? source.about.images : ["", "", ""]
+      },
+      apartments: Array.isArray(source.apartments) && source.apartments.length ? source.apartments : cloneDefaultApartments(),
+      amenities: Array.isArray(source.amenities) ? source.amenities : [],
+      activities: Array.isArray(source.activities) ? source.activities : [],
+      testimonials: Array.isArray(source.testimonials) ? source.testimonials : [],
+      faq: Array.isArray(source.faq) ? source.faq : [],
+      contact: {
+        phone: source.contact?.phone || "",
+        whatsapp: source.contact?.whatsapp || "",
+        email: source.contact?.email || "",
+        facebook: source.contact?.facebook || "",
+        address: source.contact?.address || "",
+        contactPerson: source.contact?.contactPerson || "",
+        footerDescription: source.contact?.footerDescription || ""
+      },
+      seasonalRules: Array.isArray(source.seasonalRules) && source.seasonalRules.length ? source.seasonalRules : [{ month: 7, price: 2500, enabled: true }],
+      blockedRanges: Array.isArray(source.blockedRanges) ? source.blockedRanges : [],
+      paymentMethods: Array.isArray(source.paymentMethods) ? source.paymentMethods : [],
+      customPhotos: Array.isArray(source.customPhotos) ? source.customPhotos : []
+    };
+  }
+
+  function renderRepeater(container, items, schema) {
+    if (!container) return;
+    container.innerHTML = (items || []).map((item, index) => {
+      const fields = schema.map(field => {
+        const value = item?.[field.key];
+        if (field.type === "textarea") {
+          return `<label>${escapeHtml(field.label)}<textarea data-key="${field.key}" rows="${field.rows || 2}" placeholder="${escapeHtml(field.placeholder || "")}">${escapeHtml(value ?? "")}</textarea></label>`;
+        }
+        if (field.type === "checkbox") {
+          return `<label class="admin-checkbox-row"><input type="checkbox" data-key="${field.key}" ${value ? "checked" : ""}> ${escapeHtml(field.label)}</label>`;
+        }
+        if (field.type === "number") {
+          return `<label>${escapeHtml(field.label)}<input type="number" data-key="${field.key}" value="${escapeHtml(value ?? "")}" placeholder="${escapeHtml(field.placeholder || "")}"></label>`;
+        }
+        if (field.type === "csv") {
+          const textValue = Array.isArray(value) ? value.join(", ") : (value ?? "");
+          const preview = Array.isArray(value) && value.length
+            ? `<div class="media-preview-list">${value.map(src => `<a class="media-preview-item" href="${escapeHtml(src)}" target="_blank" rel="noopener"><img src="${escapeHtml(src)}" alt="${escapeHtml(field.label)}" loading="lazy"></a>`).join("")}</div>`
+            : "";
+          const upload = field.key === "images"
+            ? `<div class="media-upload-actions"><button type="button" class="btn btn-sm btn-upload-media" data-upload-images="${index}"><i class="fa-solid fa-upload"></i> Upload Images</button></div>`
+            : "";
+          return `<label>${escapeHtml(field.label)}<textarea data-key="${field.key}" rows="${field.rows || 2}" placeholder="${escapeHtml(field.placeholder || "")}">${escapeHtml(textValue)}</textarea></label>${upload}${preview}`;
+        }
+        if (field.type === "select" && Array.isArray(field.options)) {
+          return `<label>${escapeHtml(field.label)}<select data-key="${field.key}">${field.options.map(option => `<option value="${escapeHtml(option.value)}" ${String(value) === String(option.value) ? "selected" : ""}>${escapeHtml(option.label)}</option>`).join("")}</select></label>`;
+        }
+        const preview = field.key === "image" && value
+          ? `<div class="media-preview-list"><a class="media-preview-item" href="${escapeHtml(value)}" target="_blank" rel="noopener"><img src="${escapeHtml(value)}" alt="${escapeHtml(field.label)}" loading="lazy"></a></div>`
+          : "";
+        const upload = field.key === "image"
+          ? `<div class="media-upload-actions"><button type="button" class="btn btn-sm btn-upload-media" data-upload-image="${index}"><i class="fa-solid fa-upload"></i> Upload Image</button></div>`
+          : "";
+        return `<label>${escapeHtml(field.label)}<input type="text" data-key="${field.key}" value="${escapeHtml(value ?? "")}" placeholder="${escapeHtml(field.placeholder || "")}"></label>${upload}${preview}`;
+      }).join("");
+
+      return `<div class="repeater-item" data-index="${index}">${fields}<button type="button" class="remove-btn" data-remove="${index}" aria-label="Remove item"><i class="fa-solid fa-trash"></i></button></div>`;
+    }).join("");
+  }
+
+  function collectRepeater(container, schema) {
+    if (!container) return [];
+    return Array.from(container.querySelectorAll(".repeater-item")).map(item => {
+      const entry = {};
+      schema.forEach(field => {
+        const fieldEl = item.querySelector(`[data-key="${field.key}"]`);
+        if (!fieldEl) return;
+        if (field.type === "checkbox") {
+          entry[field.key] = fieldEl.checked;
+        } else if (field.type === "number") {
+          entry[field.key] = Number(fieldEl.value || 0);
+        } else if (field.type === "csv") {
+          entry[field.key] = fieldEl.value.split(/[,;\n]/).map(part => part.trim()).filter(Boolean);
+        } else if (field.type === "select") {
+          entry[field.key] = fieldEl.value;
+        } else {
+          entry[field.key] = fieldEl.value.trim();
+        }
+      });
+      return entry;
+    }).filter(entry => Object.values(entry).some(value => Array.isArray(value) ? value.length > 0 : String(value ?? "").trim().length > 0));
+  }
+
+  function normalizeMonth(value) {
+    const month = Number(value);
+    return Number.isNaN(month) ? 0 : month;
+  }
+
+  function mergeCmsState(existing, updates) {
+    if (Array.isArray(existing) || Array.isArray(updates)) {
+      if (Array.isArray(updates) && updates.length > 0) return updates;
+      return Array.isArray(existing) ? existing : [];
+    }
+
+    if (updates && typeof updates === "object") {
+      const merged = { ...(existing && typeof existing === "object" ? existing : {}) };
+      Object.keys(updates).forEach(key => {
+        const nextValue = updates[key];
+        const currentValue = merged[key];
+        if (Array.isArray(nextValue) || Array.isArray(currentValue)) {
+          merged[key] = mergeCmsState(currentValue, nextValue);
+        } else if (nextValue && typeof nextValue === "object") {
+          merged[key] = mergeCmsState(currentValue, nextValue);
+        } else if (nextValue !== undefined) {
+          merged[key] = nextValue;
+        }
+      });
+      return merged;
+    }
+
+    return updates !== undefined ? updates : existing;
+  }
+
+  function renderHostState() {
+    if (!hostPortal.state) return;
+
+    setValue("heroKickerInput", hostPortal.state.hero.kicker);
+    setValue("heroHeadlineInput", hostPortal.state.hero.headline);
+    setValue("heroSubtitleInput", hostPortal.state.hero.subtitle);
+    renderRepeater(hostEls.heroStats, hostPortal.state.hero.statPills, portalSchemas.heroStats);
+
+    setValue("aboutTitleInput", hostPortal.state.about.title);
+    setValue("aboutP1Input", hostPortal.state.about.paragraphs[0] || "");
+    setValue("aboutP2Input", hostPortal.state.about.paragraphs[1] || "");
+    renderRepeater(hostEls.aboutFeatures, hostPortal.state.about.features, portalSchemas.aboutFeatures);
+    setValue("aboutImg1Input", hostPortal.state.about.images[0] || "");
+    setValue("aboutImg2Input", hostPortal.state.about.images[1] || "");
+    setValue("aboutImg3Input", hostPortal.state.about.images[2] || "");
+
+    renderRepeater(hostEls.apartments, hostPortal.state.apartments, portalSchemas.apartments);
+    renderRepeater(hostEls.amenities, hostPortal.state.amenities, portalSchemas.amenities);
+    renderRepeater(hostEls.activities, hostPortal.state.activities, portalSchemas.activities);
+    renderRepeater(hostEls.reviews, hostPortal.state.testimonials, portalSchemas.reviews);
+    renderRepeater(hostEls.faq, hostPortal.state.faq, portalSchemas.faq);
+
+    setValue("contactPhoneInput", hostPortal.state.contact.phone);
+    setValue("contactWhatsappInput", hostPortal.state.contact.whatsapp);
+    setValue("contactEmailInput", hostPortal.state.contact.email);
+    setValue("contactFacebookInput", hostPortal.state.contact.facebook);
+    setValue("contactAddressInput", hostPortal.state.contact.address);
+    setValue("contactPersonInput", hostPortal.state.contact.contactPerson);
+    setValue("contactFooterInput", hostPortal.state.contact.footerDescription);
+
+    setValue("adminBasePrice", hostPortal.state.basePrice);
+    renderSeasonRules();
+    renderBlockedRanges();
+    renderGalleryManager();
+    renderHostPaymentMethods();
+  }
+
+  function renderSeasonRules() {
+    if (!hostEls.seasonsList) return;
+    hostEls.seasonsList.innerHTML = (hostPortal.state?.seasonalRules || []).map((rule, index) => `
+      <div class="season-item" data-index="${index}">
+        <label>Month
+          <select data-key="month">
+            ${Array.from({ length: 12 }, (_, i) => `<option value="${i}" ${String(normalizeMonth(rule.month)) === String(i) ? "selected" : ""}>${new Date(2020, i, 1).toLocaleString("en", { month: "long" })}</option>`).join("")}
+          </select>
+        </label>
+        <label>Price
+          <input type="number" data-key="price" value="${escapeHtml(rule.price ?? "")}">
+        </label>
+        <label class="admin-checkbox-row"><input type="checkbox" data-key="enabled" ${rule.enabled ? "checked" : ""}> Enabled</label>
+        <button type="button" class="btn-delete-rule" data-remove-rule="${index}" aria-label="Delete rule"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `).join("");
+  }
+
+  function renderBlockedRanges() {
+    if (!hostEls.blockedList) return;
+    hostEls.blockedList.innerHTML = (hostPortal.state?.blockedRanges || []).map((range, index) => `
+      <div class="blocked-item" data-index="${index}">
+        <label>Start
+          <input type="date" data-key="start" value="${escapeHtml(range.start || "")}">
+        </label>
+        <label>End
+          <input type="date" data-key="end" value="${escapeHtml(range.end || "")}">
+        </label>
+        <button type="button" class="btn-delete-rule" data-remove-blocked="${index}" aria-label="Delete blocked range"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `).join("");
+  }
+
+  function renderGalleryManager() {
+    if (!hostEls.customGalleryManager) return;
+    const photos = hostPortal.state?.customPhotos || [];
+    hostEls.customGalleryManager.innerHTML = photos.length ? photos.map((photo, index) => `
+      <div class="custom-gallery-card" data-index="${index}">
+        <img src="${escapeHtml(photo.src || "")}" alt="${escapeHtml(photo.caption || "Gallery image")}" loading="lazy">
+        <div class="custom-gallery-card-body">
+          <label>Caption
+            <input type="text" class="custom-caption-input" data-key="caption" value="${escapeHtml(photo.caption || "")}" placeholder="Image caption">
+          </label>
+          <div class="custom-gallery-card-actions">
+            <button type="button" class="btn btn-sm btn-save-caption" data-save-caption="${index}">Save Caption</button>
+            <button type="button" class="btn btn-sm btn-delete-image" data-remove-photo="${index}">Delete</button>
+          </div>
+        </div>
+      </div>
+    `).join("") : `<p style="color: var(--muted); font-size: 0.92rem;">No custom gallery uploads yet.</p>`;
+  }
+
+  function renderHostPaymentMethods() {
+    if (!hostEls.paymentSettingsList) return;
+    hostEls.paymentSettingsList.innerHTML = (hostPortal.state?.paymentMethods || []).map((method, index) => `
+      <div class="payment-settings-item" data-index="${index}">
+        <div class="payment-settings-header">
+          <span>
+            ${method.image ? `<img src="${escapeHtml(method.image)}" alt="${escapeHtml(method.name || "Payment method")}" loading="lazy">` : `<i class="${escapeHtml(method.icon || "fa-solid fa-credit-card")}"></i>`}
+            <input type="text" data-key="name" value="${escapeHtml(method.name || "")}" placeholder="Method name">
+          </span>
+          <label class="admin-checkbox-row"><input type="checkbox" data-key="enabled" ${method.enabled ? "checked" : ""}> Enabled</label>
+        </div>
+        <div class="admin-form-row" style="align-items: flex-start;">
+          <label>Icon class
+            <input type="text" data-key="icon" value="${escapeHtml(method.icon || "")}" placeholder="fa-solid fa-credit-card">
+          </label>
+          <label>Image URL
+            <input type="text" data-key="image" value="${escapeHtml(method.image || "")}" placeholder="payments icon/logo.png">
+          </label>
+        </div>
+        <label>Details
+          <textarea data-key="details" rows="3" placeholder="Payment details">${escapeHtml(method.details || "")}</textarea>
+        </label>
+      </div>
+    `).join("");
+  }
+
+  function showHostPortal() {
+    if (!hostEls.modal) return;
+    hostEls.modal.classList.add("active");
+    hostEls.modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    hostEls.modal.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function hideHostPortal() {
+    if (!hostEls.modal) return;
+    hostEls.modal.classList.remove("active");
+    hostEls.modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  function showLoginError(message) {
+    if (!hostEls.loginError) return;
+    hostEls.loginError.textContent = message;
+    hostEls.loginError.style.display = message ? "block" : "none";
+  }
+
+  async function loadPortalState() {
+    const firebaseApi = await getFirebaseApi();
+    if (!firebaseApi) throw new Error("Firebase is not ready yet.");
+    const data = await firebaseApi.getState();
+    hostPortal.state = ensureHostState(data);
+    renderHostState();
+  }
+
+  function collectHostStateFromUI() {
+    if (!hostPortal.state) hostPortal.state = ensureHostState({});
+
+    hostPortal.state.hero = {
+      kicker: getValue("heroKickerInput"),
+      headline: getValue("heroHeadlineInput"),
+      subtitle: getValue("heroSubtitleInput"),
+      statPills: collectRepeater(hostEls.heroStats, portalSchemas.heroStats)
+    };
+
+    hostPortal.state.about = {
+      title: getValue("aboutTitleInput"),
+      paragraphs: [getValue("aboutP1Input"), getValue("aboutP2Input")],
+      features: collectRepeater(hostEls.aboutFeatures, portalSchemas.aboutFeatures),
+      images: [getValue("aboutImg1Input"), getValue("aboutImg2Input"), getValue("aboutImg3Input")]
+    };
+
+    hostPortal.state.apartments = collectRepeater(hostEls.apartments, portalSchemas.apartments);
+    hostPortal.state.amenities = collectRepeater(hostEls.amenities, portalSchemas.amenities);
+    hostPortal.state.activities = collectRepeater(hostEls.activities, portalSchemas.activities);
+    hostPortal.state.testimonials = collectRepeater(hostEls.reviews, portalSchemas.reviews);
+    hostPortal.state.faq = collectRepeater(hostEls.faq, portalSchemas.faq);
+
+    hostPortal.state.contact = {
+      phone: getValue("contactPhoneInput"),
+      whatsapp: getValue("contactWhatsappInput"),
+      email: getValue("contactEmailInput"),
+      facebook: getValue("contactFacebookInput"),
+      address: getValue("contactAddressInput"),
+      contactPerson: getValue("contactPersonInput"),
+      footerDescription: getValue("contactFooterInput")
+    };
+
+    hostPortal.state.basePrice = Number(getValue("adminBasePrice") || 2000);
+    hostPortal.state.seasonalRules = Array.from(hostEls.seasonsList?.querySelectorAll(".season-item") || []).map(item => {
+      const month = item.querySelector('[data-key="month"]');
+      const price = item.querySelector('[data-key="price"]');
+      const enabled = item.querySelector('[data-key="enabled"]');
+      return {
+        month: normalizeMonth(month?.value || 0),
+        price: Number(price?.value || 0),
+        enabled: Boolean(enabled?.checked)
+      };
+    });
+    hostPortal.state.blockedRanges = Array.from(hostEls.blockedList?.querySelectorAll(".blocked-item") || []).map(item => ({
+      start: item.querySelector('[data-key="start"]')?.value || "",
+      end: item.querySelector('[data-key="end"]')?.value || ""
+    })).filter(range => range.start || range.end);
+
+    hostPortal.state.paymentMethods = collectRepeater(hostEls.paymentSettingsList, portalSchemas.paymentMethods);
+
+    return hostPortal.state;
+  }
+
+  async function savePortalState(message = "Saved successfully") {
+    const firebaseApi = await getFirebaseApi();
+    if (!firebaseApi?.saveState) throw new Error("Firebase is not ready yet.");
+    if (!hostPortal.user) throw new Error("You need to log in first.");
+    const payload = collectHostStateFromUI();
+    const mergedState = ensureHostState(mergeCmsState(hostPortal.state || {}, payload));
+    await firebaseApi.saveState(mergedState);
+    hostPortal.state = mergedState;
+    publicCmsState = normalizePublicState(mergedState);
+    renderPublicCms(publicCmsState);
+    saveCachedCmsState(publicCmsState);
+    renderHostState();
+    return message;
+  }
+
+  async function loadBookings() {
+    const firebaseApi = await getFirebaseApi();
+    if (!firebaseApi || !hostEls.bookingsTableWrapper) return;
+    if (!hostPortal.user) return;
+    hostEls.bookingsTableWrapper.innerHTML = "<p style='color: var(--muted); font-size: 0.95rem;'>Loading bookings...</p>";
+    const bookings = await firebaseApi.fetchBookings();
+    if (!bookings.length) {
+      hostEls.bookingsTableWrapper.innerHTML = "<p style='color: var(--muted); font-size: 0.95rem;'>No bookings yet.</p>";
+      return;
+    }
+
+    hostEls.bookingsTableWrapper.innerHTML = `
+      <table class="bookings-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Dates</th>
+            <th>Apartment</th>
+            <th>Contact</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${bookings.map(booking => `
+            <tr data-booking-id="${escapeHtml(booking.id)}">
+              <td>
+                <strong>${escapeHtml(booking.name || "")}</strong><br>
+                <small>${escapeHtml(booking.email || "")}</small>
+              </td>
+              <td>${escapeHtml(booking.checkin || "")} to ${escapeHtml(booking.checkout || "")}</td>
+              <td>${escapeHtml(booking.apartment || "")}<br><small>${escapeHtml(booking.guests || "")} guests</small></td>
+              <td>${escapeHtml(booking.phone || "")}</td>
+              <td>
+                <select class="status-select" data-status-select="${escapeHtml(booking.id)}">
+                  ${["new", "confirmed", "checked_in", "completed", "cancelled"].map(status => `<option value="${status}" ${booking.status === status ? "selected" : ""}>${status.replace(/_/g, " ")}</option>`).join("")}
+                </select>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+
+    hostEls.bookingsTableWrapper.querySelectorAll("[data-status-select]").forEach(select => {
+      select.addEventListener("change", async function () {
+        const bookingId = this.dataset.statusSelect;
+        await firebaseApi.updateBookingStatus(bookingId, this.value);
+      });
+    });
+  }
+
+  function bindPortalEvents() {
+    if (!document.body.dataset.hostPortalBound) {
+      document.body.dataset.hostPortalBound = "true";
+      document.addEventListener("click", async function (event) {
+        const portalLink = event.target.closest("#hostPortalBtn");
+        if (!portalLink) return;
+        event.preventDefault();
+        showHostPortal();
+        const firebaseApi = await getFirebaseApi();
+        hostPortal.user = firebaseApi?.getCurrentUser() || null;
+        if (hostPortal.user) {
+          try {
+            await loadPortalState();
+            if (hostEls.loginBox) hostEls.loginBox.style.display = "none";
+            if (hostEls.dashboard) hostEls.dashboard.style.display = "flex";
+            await loadBookings();
+          } catch (err) {
+            console.error(err);
+          }
+        } else {
+          if (hostEls.loginBox) hostEls.loginBox.style.display = "block";
+          if (hostEls.dashboard) hostEls.dashboard.style.display = "none";
+        }
+      });
+    }
+
+    if (hostEls.closeBtn) {
+      hostEls.closeBtn.addEventListener("click", hideHostPortal);
+    }
+
+    if (hostEls.modal) {
+      hostEls.modal.addEventListener("click", function (event) {
+        if (event.target === hostEls.modal) hideHostPortal();
+      });
+    }
+
+    if (hostEls.loginBtn) {
+      hostEls.loginBtn.addEventListener("click", async function () {
+        try {
+          showLoginError("");
+          const email = hostEls.emailInput?.value?.trim();
+          const password = hostEls.passwordInput?.value || "";
+          if (!email || !password) {
+            showLoginError("Please enter your email and password.");
+            return;
+          }
+          const firebaseApi = await getFirebaseApi();
+          if (!firebaseApi?.signInAdmin) {
+            if (window.firebaseInitStatus === "error") {
+              showLoginError(window.firebaseInitError || "Firebase could not initialize. Check your config and refresh.");
+            } else {
+              showLoginError("Firebase is still loading. Please wait a moment and try again.");
+            }
+            return;
+          }
+          hostPortal.user = await firebaseApi.signInAdmin(email, password);
+          if (hostEls.loginBox) hostEls.loginBox.style.display = "none";
+          if (hostEls.dashboard) hostEls.dashboard.style.display = "flex";
+        } catch (err) {
+          if (hostEls.loginBox) hostEls.loginBox.style.display = "block";
+          if (hostEls.dashboard) hostEls.dashboard.style.display = "none";
+          showLoginError(err.message || "Login failed");
+        }
+      });
+    }
+
+    if (hostEls.passwordInput) {
+      hostEls.passwordInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          hostEls.loginBtn?.click();
+        }
+      });
+    }
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", function () {
+        const target = this.dataset.tab;
+        document.querySelectorAll(".tab-btn").forEach(button => button.classList.toggle("active", button === this));
+        document.querySelectorAll(".admin-tab-panel").forEach(panel => panel.classList.toggle("active", panel.id === target));
+      });
+    });
+
+    const createBlankItem = schema => schema.reduce((acc, field) => {
+      if (field.type === "checkbox") acc[field.key] = false;
+      else if (field.type === "number") acc[field.key] = 0;
+      else if (field.type === "csv") acc[field.key] = [];
+      else if (field.type === "select") acc[field.key] = field.options?.[0]?.value ?? "";
+      else acc[field.key] = "";
+      return acc;
+    }, {});
+
+    const addItemToPath = (path, schema, renderFn) => {
+      const parts = path.split(".");
+      let target = hostPortal.state;
+      for (let i = 0; i < parts.length - 1; i += 1) {
+        target = target?.[parts[i]];
+      }
+      const key = parts[parts.length - 1];
+      if (!target || !Array.isArray(target[key])) return;
+      target[key].push(createBlankItem(schema));
+      renderFn();
+    };
+
+    hostEls.addHeroStatBtn?.addEventListener("click", function () {
+      if (!hostPortal.state) return;
+      collectHostStateFromUI();
+      addItemToPath("hero.statPills", portalSchemas.heroStats, renderHostState);
+    });
+
+    hostEls.addAboutFeatureBtn?.addEventListener("click", function () {
+      if (!hostPortal.state) return;
+      collectHostStateFromUI();
+      addItemToPath("about.features", portalSchemas.aboutFeatures, renderHostState);
+    });
+
+    hostEls.addApartmentBtn?.addEventListener("click", function () {
+      if (!hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.apartments.unshift(createBlankItem(portalSchemas.apartments));
+      renderHostState();
+    });
+
+    hostEls.addAmenityBtn?.addEventListener("click", function () {
+      if (!hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.amenities.push(createBlankItem(portalSchemas.amenities));
+      renderHostState();
+    });
+
+    hostEls.addActivityBtn?.addEventListener("click", function () {
+      if (!hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.activities.unshift(createBlankItem(portalSchemas.activities));
+      renderHostState();
+    });
+
+    hostEls.addReviewBtn?.addEventListener("click", function () {
+      if (!hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.testimonials.unshift(createBlankItem(portalSchemas.reviews));
+      renderHostState();
+    });
+
+    hostEls.addFaqBtn?.addEventListener("click", function () {
+      if (!hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.faq.push(createBlankItem(portalSchemas.faq));
+      renderHostState();
+    });
+
+    hostEls.addRuleBtn?.addEventListener("click", function () {
+      if (!hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.seasonalRules.push({
+        month: normalizeMonth(hostEls.ruleMonth?.value || 0),
+        price: Number(hostEls.rulePrice?.value || 0),
+        enabled: true
+      });
+      if (hostEls.rulePrice) hostEls.rulePrice.value = "";
+      renderSeasonRules();
+    });
+
+    hostEls.addBlockBtn?.addEventListener("click", function () {
+      if (!hostPortal.state) return;
+      collectHostStateFromUI();
+      const start = hostEls.blockStart?.value || "";
+      const end = hostEls.blockEnd?.value || "";
+      if (!start || !end) return;
+      hostPortal.state.blockedRanges.push({ start, end });
+      if (hostEls.blockStart) hostEls.blockStart.value = "";
+      if (hostEls.blockEnd) hostEls.blockEnd.value = "";
+      renderBlockedRanges();
+    });
+
+    hostEls.refreshBookingsBtn?.addEventListener("click", loadBookings);
+
+    hostEls.triggerUploadBtn?.addEventListener("click", function () {
+      hostEls.galleryUploadInput?.click();
+    });
+
+    hostEls.galleryUploadInput?.addEventListener("change", async function () {
+      const files = Array.from(this.files || []);
+      const firebaseApi = await getFirebaseApi();
+      if (!files.length || !hostPortal.user || !firebaseApi?.uploadMedia) return;
+      if (hostEls.uploadStatusText) hostEls.uploadStatusText.textContent = "Uploading...";
+        try {
+        for (const file of files) {
+          const payload = await firebaseApi.uploadMedia(file, "gallery");
+          hostPortal.state.customPhotos.unshift({ src: payload.url, caption: file.name.replace(/\.[^.]+$/, "") });
+        }
+        renderGalleryManager();
+        await savePortalState("Gallery uploaded");
+        if (hostEls.uploadStatusText) hostEls.uploadStatusText.textContent = "Upload complete.";
+      } catch (err) {
+        if (hostEls.uploadStatusText) hostEls.uploadStatusText.textContent = err.message || "Upload failed";
+      } finally {
+        this.value = "";
+      }
+    });
+
+    hostEls.customGalleryManager?.addEventListener("click", async function (event) {
+      const saveBtn = event.target.closest("[data-save-caption]");
+      const deleteBtn = event.target.closest("[data-remove-photo]");
+
+      if (saveBtn) {
+        const index = Number(saveBtn.dataset.saveCaption);
+        const card = saveBtn.closest(".custom-gallery-card");
+        const captionInput = card?.querySelector('[data-key="caption"]');
+        if (hostPortal.state?.customPhotos?.[index] && captionInput) {
+          hostPortal.state.customPhotos[index].caption = captionInput.value.trim();
+          await savePortalState("Caption saved");
+          renderGalleryManager();
+        }
+      }
+
+      if (deleteBtn) {
+        const index = Number(deleteBtn.dataset.removePhoto);
+        if (!Number.isNaN(index)) {
+          hostPortal.state.customPhotos.splice(index, 1);
+          renderGalleryManager();
+          await savePortalState("Photo removed");
+        }
+      }
+    });
+
+    hostEls.saveHeroBtn?.addEventListener("click", async function () {
+      try { await savePortalState("Hero saved"); alert("Hero section saved."); } catch (err) { alert(err.message); }
+    });
+    hostEls.saveAboutBtn?.addEventListener("click", async function () {
+      try { await savePortalState("About saved"); alert("About section saved."); } catch (err) { alert(err.message); }
+    });
+    
+    const handleAboutUpload = async (inputId) => {
+      const urls = await openMediaPicker({ multiple: false });
+      if (!urls.length) return;
+      const input = document.getElementById(inputId);
+      if (input) {
+        input.value = urls[0];
+        collectHostStateFromUI();
+        renderHostState();
+      }
+    };
+    document.getElementById("uploadAboutImg1Btn")?.addEventListener("click", () => handleAboutUpload("aboutImg1Input"));
+    document.getElementById("uploadAboutImg2Btn")?.addEventListener("click", () => handleAboutUpload("aboutImg2Input"));
+    document.getElementById("uploadAboutImg3Btn")?.addEventListener("click", () => handleAboutUpload("aboutImg3Input"));
+
+    hostEls.saveApartmentsBtn?.addEventListener("click", async function () {
+      try { await savePortalState("Apartments saved"); alert("Apartments saved."); } catch (err) { alert(err.message); }
+    });
+    hostEls.saveAmenitiesBtn?.addEventListener("click", async function () {
+      try { await savePortalState("Amenities saved"); alert("Amenities saved."); } catch (err) { alert(err.message); }
+    });
+    hostEls.saveActivitiesBtn?.addEventListener("click", async function () {
+      try { await savePortalState("Activities saved"); alert("Activities saved."); } catch (err) { alert(err.message); }
+    });
+    hostEls.saveReviewsBtn?.addEventListener("click", async function () {
+      try { await savePortalState("Reviews saved"); alert("Reviews saved."); } catch (err) { alert(err.message); }
+    });
+    hostEls.saveFaqBtn?.addEventListener("click", async function () {
+      try { await savePortalState("FAQ saved"); alert("FAQ saved."); } catch (err) { alert(err.message); }
+    });
+    hostEls.saveContactBtn?.addEventListener("click", async function () {
+      try { await savePortalState("Contact saved"); alert("Contact details saved."); } catch (err) { alert(err.message); }
+    });
+    hostEls.saveBasePriceBtn?.addEventListener("click", async function () {
+      try { await savePortalState("Pricing saved"); alert("Pricing saved."); } catch (err) { alert(err.message); }
+    });
+    hostEls.savePaymentsBtn?.addEventListener("click", async function () {
+      try { await savePortalState("Payments saved"); alert("Payment settings saved."); } catch (err) { alert(err.message); }
+    });
+
+    hostEls.signOutBtn?.addEventListener("click", async function () {
+      try {
+        const firebaseApi = await getFirebaseApi();
+        if (firebaseApi?.signOutAdmin) {
+          await firebaseApi.signOutAdmin();
+        }
+        hostPortal.user = null;
+        hostPortal.state = null;
+        if (hostEls.loginBox) hostEls.loginBox.style.display = "block";
+        if (hostEls.dashboard) hostEls.dashboard.style.display = "none";
+        if (hostEls.authStatusMsg) hostEls.authStatusMsg.textContent = "Signed out successfully.";
+      } catch (err) {
+        if (hostEls.authStatusMsg) hostEls.authStatusMsg.textContent = err.message || "Could not sign out.";
+      }
+    });
+
+    hostEls.heroStats?.addEventListener("click", function (event) {
+      const removeBtn = event.target.closest("[data-remove]");
+      if (!removeBtn || !hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.hero.statPills.splice(Number(removeBtn.dataset.remove), 1);
+      renderHostState();
+    });
+
+    hostEls.aboutFeatures?.addEventListener("click", function (event) {
+      const removeBtn = event.target.closest("[data-remove]");
+      if (!removeBtn || !hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.about.features.splice(Number(removeBtn.dataset.remove), 1);
+      renderHostState();
+    });
+
+    hostEls.apartments?.addEventListener("click", function (event) {
+      const removeBtn = event.target.closest("[data-remove]");
+      const uploadBtn = event.target.closest("[data-upload-images]");
+      if (uploadBtn && hostPortal.state) {
+        (async () => {
+          const index = Number(uploadBtn.dataset.uploadImages);
+          const urls = await openMediaPicker({ multiple: true });
+          if (!urls.length) return;
+          const item = hostEls.apartments?.querySelector(`.repeater-item[data-index="${index}"]`);
+          const textarea = item?.querySelector('[data-key="images"]');
+          if (!textarea) return;
+          const current = textarea.value.trim();
+          const next = [current, ...urls].filter(Boolean).join(", ");
+          updateRepeaterField(hostEls.apartments, index, "images", next);
+          collectHostStateFromUI();
+          renderHostState();
+        })();
+        return;
+      }
+      if (!removeBtn || !hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.apartments.splice(Number(removeBtn.dataset.remove), 1);
+      renderHostState();
+    });
+
+    hostEls.amenities?.addEventListener("click", function (event) {
+      const removeBtn = event.target.closest("[data-remove]");
+      if (!removeBtn || !hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.amenities.splice(Number(removeBtn.dataset.remove), 1);
+      renderHostState();
+    });
+
+    hostEls.activities?.addEventListener("click", function (event) {
+      const removeBtn = event.target.closest("[data-remove]");
+      const uploadBtn = event.target.closest("[data-upload-image]");
+      if (uploadBtn && hostPortal.state) {
+        (async () => {
+          const index = Number(uploadBtn.dataset.uploadImage);
+          const urls = await openMediaPicker({ multiple: false });
+          if (!urls.length) return;
+          updateRepeaterField(hostEls.activities, index, "image", urls[0]);
+          collectHostStateFromUI();
+          renderHostState();
+        })();
+        return;
+      }
+      if (!removeBtn || !hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.activities.splice(Number(removeBtn.dataset.remove), 1);
+      renderHostState();
+    });
+
+    hostEls.reviews?.addEventListener("click", function (event) {
+      const removeBtn = event.target.closest("[data-remove]");
+      const uploadBtn = event.target.closest("[data-upload-image]");
+      if (uploadBtn && hostPortal.state) {
+        (async () => {
+          const index = Number(uploadBtn.dataset.uploadImage);
+          const urls = await openMediaPicker({ multiple: false });
+          if (!urls.length) return;
+          updateRepeaterField(hostEls.reviews, index, "image", urls[0]);
+          collectHostStateFromUI();
+          renderHostState();
+        })();
+        return;
+      }
+      if (!removeBtn || !hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.testimonials.splice(Number(removeBtn.dataset.remove), 1);
+      renderHostState();
+    });
+
+    hostEls.faq?.addEventListener("click", function (event) {
+      const removeBtn = event.target.closest("[data-remove]");
+      if (!removeBtn || !hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.faq.splice(Number(removeBtn.dataset.remove), 1);
+      renderHostState();
+    });
+
+    hostEls.seasonsList?.addEventListener("click", function (event) {
+      const removeBtn = event.target.closest("[data-remove-rule]");
+      if (!removeBtn || !hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.seasonalRules.splice(Number(removeBtn.dataset.removeRule), 1);
+      renderSeasonRules();
+    });
+
+    hostEls.blockedList?.addEventListener("click", function (event) {
+      const removeBtn = event.target.closest("[data-remove-blocked]");
+      if (!removeBtn || !hostPortal.state) return;
+      collectHostStateFromUI();
+      hostPortal.state.blockedRanges.splice(Number(removeBtn.dataset.removeBlocked), 1);
+      renderBlockedRanges();
+    });
+
+  }
+
+  bindPortalEvents();
+  if (window.firebaseApiReady && typeof window.firebaseApiReady.then === "function") {
+    window.firebaseApiReady.then(() => {
+      updateFirebaseLoginState();
+    }).catch(() => {
+      updateFirebaseLoginState();
+    });
+  }
+  getFirebaseApi().then(firebaseApi => {
+    if (!firebaseApi?.onAuthChange) return;
+    firebaseApi.onAuthChange(user => {
+      hostPortal.user = user;
+      if (!hostEls.modal?.classList.contains("active")) return;
+      if (user) {
+        if (hostEls.loginBox) hostEls.loginBox.style.display = "none";
+        if (hostEls.dashboard) hostEls.dashboard.style.display = "flex";
+        loadPortalState().then(loadBookings).catch(console.error);
+      } else {
+        if (hostEls.loginBox) hostEls.loginBox.style.display = "block";
+        if (hostEls.dashboard) hostEls.dashboard.style.display = "none";
+      }
+    });
+  });
+})();

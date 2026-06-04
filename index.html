@@ -23,6 +23,7 @@
   <link rel="preload" as="image" href="assets/630362444_122164141550841441_5390268530041289102_n.jpg">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
   <link rel="stylesheet" href="styles.css">
   <script type="application/ld+json">
     {
@@ -408,23 +409,12 @@
           </div>
 
           <!-- Interactive Calendar Widget -->
-          <div class="calendar-widget" id="bookingCalendarWidget">
-            <div class="calendar-header">
-              <button type="button" id="prevMonthBtn" class="calendar-nav-btn" aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button>
-              <h3 id="currentMonthYear">June 2026</h3>
-              <button type="button" id="nextMonthBtn" class="calendar-nav-btn" aria-label="Next month"><i class="fa-solid fa-chevron-right"></i></button>
-            </div>
-            <div class="calendar-weekdays">
-              <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
-            </div>
-            <div class="calendar-days" id="calendarDaysGrid">
-              <!-- Rendered dynamically -->
-            </div>
-            <div class="calendar-legend">
-              <div><span class="legend-dot standard"></span> Standard</div>
-              <div><span class="legend-dot holiday"></span> High Season</div>
-              <div><span class="legend-dot blocked"></span> Booked/Unavailable</div>
-            </div>
+          <div id="bookingCalendar" style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1rem; margin-bottom:1.5rem;"></div>
+          <div class="calendar-legend" style="display:flex; justify-content:center; gap:1.5rem; flex-wrap:wrap; margin-bottom:1.5rem; font-size:0.85rem; color:var(--muted);">
+            <div><span style="display:inline-block; width:12px; height:12px; background:#2ecc71; border-radius:50%; margin-right:6px; vertical-align:middle;"></span> Available / Selected</div>
+            <div><span style="display:inline-block; width:12px; height:12px; background:#f39c12; border-radius:50%; margin-right:6px; vertical-align:middle;"></span> Pending</div>
+            <div><span style="display:inline-block; width:12px; height:12px; background:#e74c3c; border-radius:50%; margin-right:6px; vertical-align:middle;"></span> Booked (Confirmed)</div>
+            <div><span style="display:inline-block; width:12px; height:12px; background:#666666; border-radius:50%; margin-right:6px; vertical-align:middle;"></span> Blocked / Unavailable</div>
           </div>
         </div>
 
@@ -483,7 +473,42 @@
           <div class="payment-method-section">
             <h4>Select Payment Method</h4>
             <div class="payment-methods-grid" id="paymentMethodsGrid">
-              <!-- Rendered dynamically -->
+              <button type="button" class="payment-method-card active" data-method="mtn">
+                <span class="payment-method-media">
+                  <img class="payment-logo" src="payments icon/mtn-new-logo.svg" alt="MTN Mobile Money" loading="eager" decoding="async">
+                </span>
+                <span>MTN Mobile Money</span>
+              </button>
+              <button type="button" class="payment-method-card" data-method="airtel">
+                <span class="payment-method-media">
+                  <img class="payment-logo" src="payments icon/Airtel_logo-02.png" alt="Airtel Money" loading="eager" decoding="async">
+                </span>
+                <span>Airtel Money</span>
+              </button>
+              <button type="button" class="payment-method-card" data-method="fnb">
+                <span class="payment-method-media">
+                  <img class="payment-logo" src="payments icon/FNB-Logo.png" alt="FNB Bank Transfer" loading="eager" decoding="async">
+                </span>
+                <span>FNB Bank Transfer</span>
+              </button>
+              <button type="button" class="payment-method-card" data-method="visa">
+                <span class="payment-method-media">
+                  <img class="payment-logo" src="payments icon/Visa_Inc-_idDUM8TcN7_1.png" alt="Visa" loading="eager" decoding="async">
+                </span>
+                <span>Visa</span>
+              </button>
+              <button type="button" class="payment-method-card" data-method="mastercard">
+                <span class="payment-method-media">
+                  <img class="payment-logo" src="payments icon/Mastercard_Symbol_1.png" alt="Mastercard" loading="eager" decoding="async">
+                </span>
+                <span>Mastercard</span>
+              </button>
+              <button type="button" class="payment-method-card" data-method="cash">
+                <span class="payment-method-media">
+                  <i class="payment-fallback fa-solid fa-money-bill-wave"></i>
+                </span>
+                <span>Cash on Arrival</span>
+              </button>
             </div>
             <div class="payment-instructions" id="paymentInstructionsBox" style="display: none;"></div>
             <input type="hidden" name="payment_method" id="selectedPaymentMethodInput" required>
@@ -609,7 +634,7 @@
         <h4>Contact Person</h4>
         <p>Masozi Kamanga</p>
         <p><a href="tel:+260978176858">+260 978176858</a></p>
-        <p style="margin-top: 1.2rem;"><a href="#adminModal" id="hostPortalBtn" style="opacity: 0.6; font-size: 0.85rem;"><i class="fa-solid fa-lock"></i> Host Portal</a></p>
+        <p style="margin-top: 1.2rem;"><a href="#hostDashboard" id="hostPortalBtn" style="opacity: 0.6; font-size: 0.85rem;"><i class="fa-solid fa-lock"></i> Host Portal</a></p>
       </div>
     </div>
     <p class="copyright">&copy; <span id="year"></span> M KAY APARTMENTS LTD. All rights reserved.</p>
@@ -623,19 +648,20 @@
     <button class="lightbox-nav next" id="lightboxNext" aria-label="Next image"><i class="fa-solid fa-chevron-right"></i></button>
   </div>
 
-  <!-- Host Control Panel Modal -->
-  <div class="admin-modal" id="adminModal" aria-hidden="true">
+  <!-- Host Control Panel Page Section -->
+  <section class="admin-modal" id="hostDashboard" aria-hidden="true">
     <div class="admin-modal-content">
       <div class="admin-modal-header">
         <h2><i class="fa-solid fa-sliders"></i> Host Control Panel</h2>
         <button class="admin-modal-close" id="adminModalClose" aria-label="Close admin panel"><i class="fa-solid fa-xmark"></i></button>
       </div>
       
-      <!-- PIN Login Container -->
+      <!-- Admin Login Container -->
       <div class="admin-login-box" id="adminLoginBox">
-        <p>Enter PIN to access host settings (Default: <strong>1234</strong>):</p>
+        <p>Sign in with your Firebase admin account to access host settings.</p>
         <div class="pin-input-row">
-          <input type="password" id="adminPin" placeholder="••••" maxlength="4">
+          <input type="email" id="adminEmail" placeholder="admin@email.com">
+          <input type="password" id="adminPassword" placeholder="Password">
           <button id="adminLoginBtn" class="btn btn-sm">Access</button>
         </div>
         <p id="adminLoginError" class="error-msg" style="display:none; color: #ff5252; font-weight: 600; margin-top: 0.5rem;"></p>
@@ -656,9 +682,8 @@
           <button class="tab-btn" data-tab="tab-blocked"><i class="fa-solid fa-calendar-xmark"></i> Blocked Dates</button>
           <button class="tab-btn" data-tab="tab-gallery"><i class="fa-solid fa-images"></i> Manage Gallery</button>
           <button class="tab-btn" data-tab="tab-payments"><i class="fa-solid fa-credit-card"></i> Payments</button>
+          <button class="tab-btn" data-tab="tab-bookings"><i class="fa-solid fa-list-check"></i> Bookings</button>
           <button class="tab-btn" data-tab="tab-settings"><i class="fa-solid fa-gear"></i> Settings</button>
-        </nav>
-
         </nav>
 
         <!-- CMS Tab: Hero -->
@@ -702,9 +727,9 @@
           
           <h4 style="margin-top: 1.5rem;">Images</h4>
           <div class="admin-form-row" style="flex-direction: column; align-items: flex-start; max-width: 600px; gap: 0.5rem;">
-            <label style="width: 100%;">Image 1 URL <input type="text" id="aboutImg1Input" style="width: 100%;"></label>
-            <label style="width: 100%;">Image 2 URL <input type="text" id="aboutImg2Input" style="width: 100%;"></label>
-            <label style="width: 100%;">Image 3 URL <input type="text" id="aboutImg3Input" style="width: 100%;"></label>
+            <label style="width: 100%;">Image 1 URL <div style="display: flex; gap: 0.5rem; width: 100%;"><input type="text" id="aboutImg1Input" style="width: 100%;"><button type="button" class="btn btn-sm" id="uploadAboutImg1Btn" aria-label="Upload Image 1"><i class="fa-solid fa-upload"></i></button></div></label>
+            <label style="width: 100%;">Image 2 URL <div style="display: flex; gap: 0.5rem; width: 100%;"><input type="text" id="aboutImg2Input" style="width: 100%;"><button type="button" class="btn btn-sm" id="uploadAboutImg2Btn" aria-label="Upload Image 2"><i class="fa-solid fa-upload"></i></button></div></label>
+            <label style="width: 100%;">Image 3 URL <div style="display: flex; gap: 0.5rem; width: 100%;"><input type="text" id="aboutImg3Input" style="width: 100%;"><button type="button" class="btn btn-sm" id="uploadAboutImg3Btn" aria-label="Upload Image 3"><i class="fa-solid fa-upload"></i></button></div></label>
           </div>
           <button id="saveAboutBtn" class="btn" style="margin-top: 1.2rem; width: 100%;">Save About Changes</button>
         </div>
@@ -865,29 +890,52 @@
           </div>
           <button id="savePaymentsBtn" class="btn" style="margin-top: 1.2rem; width: 100%;">Save Payment Configurations</button>
         </div>
+
+        <!-- Tab: Bookings -->
+        <div class="admin-tab-panel" id="tab-bookings">
+          <h3>Bookings Dashboard</h3>
+          <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1.2rem;">View, refresh, and update reservation requests from your website.</p>
+          <div class="bookings-actions">
+            <button id="refreshBookingsBtn" class="btn btn-sm">Refresh Bookings</button>
+          </div>
+          <div class="bookings-table-wrapper" id="bookingsTableWrapper">
+            <p style="color: var(--muted); font-size: 0.95rem;">Loading bookings...</p>
+          </div>
+        </div>
+
         <!-- Tab: Settings & Security -->
         <div class="admin-tab-panel" id="tab-settings">
-          <h3>Security Settings</h3>
-          <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Change the PIN used to access this Host Control Panel.</p>
-          
+          <h3>Account Settings</h3>
+          <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1.2rem;">Manage your admin session for this Host Control Panel.</p>
+
           <div class="admin-form-row" style="flex-direction: column; align-items: flex-start; max-width: 400px; gap: 1rem;">
-            <label style="width: 100%;">Current PIN
-              <input type="password" id="currentPinInput" placeholder="••••" maxlength="4" style="width: 100%;">
-            </label>
-            <label style="width: 100%;">New PIN
-              <input type="password" id="newPinInput" placeholder="••••" maxlength="4" style="width: 100%;">
-            </label>
-            <label style="width: 100%;">Confirm New PIN
-              <input type="password" id="confirmPinInput" placeholder="••••" maxlength="4" style="width: 100%;">
-            </label>
-            <button id="changePinBtn" class="btn" style="width: 100%;">Change PIN</button>
-            <p id="pinStatusMsg" style="font-size: 0.85rem; font-weight: 600; margin-top: 0.5rem;"></p>
+            <p style="margin: 0; color: var(--muted);">You are signed in with Firebase Authentication. Use the button below to sign out.</p>
+            <button id="signOutBtn" class="btn" style="width: 100%;">Sign Out</button>
+            <p id="authStatusMsg" style="font-size: 0.85rem; font-weight: 600; margin-top: 0.5rem;"></p>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- Firebase client config for Firestore, Auth, and Storage -->
+  <script>
+    window.FIREBASE_CONFIG = {
+      apiKey: "AIzaSyByQe6-IezB79mWVet-EuQM3V2AXDPsSeE",
+      authDomain: "mk-properties-dfd7d.firebaseapp.com",
+      projectId: "mk-properties-dfd7d",
+      storageBucket: "mk-properties-dfd7d.firebasestorage.app",
+      messagingSenderId: "936137337312",
+      appId: "1:936137337312:web:10df57a5134737190ee385"
+    };
+    window.APPWRITE_CONFIG = {
+      endpoint: "https://fra.cloud.appwrite.io/v1",
+      projectId: "6a20cda300168b3b27d8",
+      bucketId: "6a20ce370028248840f7"
+    };
+  </script>
+  <script type="module" src="firebase-init.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js" defer></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
