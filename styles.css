@@ -1546,6 +1546,14 @@ body.dark-theme .legend-dot.blocked {
   grid-area: 1 / 1;
 }
 
+.payment-method-media img {
+  z-index: 2;
+}
+
+.payment-method-media .payment-fallback {
+  z-index: 1;
+}
+
 .payment-fallback {
   font-size: 2.8rem;
   color: var(--muted);

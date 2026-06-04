@@ -32,7 +32,11 @@
       "dest": "admin.html"
     },
     {
-      "src": "/(.*)",
+      "src": "^/$",
+      "dest": "/index.html"
+    },
+    {
+      "src": "^(.*)$",
       "dest": "$1"
     }
   ]

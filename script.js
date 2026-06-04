@@ -397,7 +397,7 @@
       id: "mtn",
       name: "MTN Mobile Money",
       icon: "fa-solid fa-mobile-screen-button",
-      image: "payments icon/mtn-new-logo.svg",
+      image: "assets/payments-icons/mtn-new-logo.svg",
       enabled: true,
       details: "Send to MTN Mobile Money:\nMerchant Code / Number: +260 764336304\nName: M Kay Apartments Ltd"
     },
@@ -405,7 +405,7 @@
       id: "airtel",
       name: "Airtel Money",
       icon: "fa-solid fa-mobile-screen-button",
-      image: "payments icon/Airtel_logo-02.png",
+      image: "assets/payments-icons/Airtel_logo-02.png",
       enabled: true,
       details: "Send to Airtel Money:\nNumber: +260 978176858\nName: Masozi Kamanga"
     },
@@ -413,7 +413,7 @@
       id: "fnb",
       name: "FNB Bank Transfer",
       icon: "fa-solid fa-building-columns",
-      image: "payments icon/FNB-Logo.png",
+      image: "assets/payments-icons/FNB-Logo.png",
       enabled: true,
       details: "Bank: First National Bank (FNB)\nAccount: 62981726354\nBranch: Livingstone\nName: M KAY APARTMENTS LTD"
     },
@@ -421,7 +421,7 @@
       id: "visa",
       name: "Visa",
       icon: "fa-brands fa-cc-visa",
-      image: "payments icon/Visa_Inc-_idDUM8TcN7_1.png",
+      image: "assets/payments-icons/Visa_Inc-_idDUM8TcN7_1.png",
       enabled: true,
       details: "We will email/WhatsApp you a secure payment link to pay with your Visa card."
     },
@@ -429,7 +429,7 @@
       id: "mastercard",
       name: "Mastercard",
       icon: "fa-brands fa-cc-mastercard",
-      image: "payments icon/Mastercard_Symbol_1.png",
+      image: "assets/payments-icons/Mastercard_Symbol_1.png",
       enabled: true,
       details: "We will email/WhatsApp you a secure payment link to pay with your Mastercard."
     },
@@ -851,15 +851,12 @@
 
     grid.innerHTML = availablePaymentMethods.map(method => `
       <button type="button" class="payment-method-card ${method.id === currentMethod ? "active" : ""}" data-method="${escapeHtml(method.id)}">
-        ${method.image ? `
-          <span class="payment-method-media">
+        <span class="payment-method-media">
+          ${method.image ? `
             <img class="payment-logo" src="${escapeHtml(encodeURI(method.image))}" alt="${escapeHtml(method.name)}" loading="eager" decoding="async">
-          </span>
-        ` : `
-          <span class="payment-method-media">
-            <i class="payment-fallback ${escapeHtml(method.icon || "fa-solid fa-credit-card")}"></i>
-          </span>
-        `}
+          ` : ``}
+          <i class="payment-fallback ${escapeHtml(method.icon || "fa-solid fa-credit-card")}"></i>
+        </span>
         <span>${escapeHtml(method.name)}</span>
       </button>
     `).join("");
@@ -1097,7 +1094,7 @@
           <h4>Contact Person</h4>
           <p>${escapeHtml(state.contact.contactPerson || "Masozi Kamanga")}</p>
           <p><a href="tel:${escapeHtml(state.contact.phone || "")}">${escapeHtml(state.contact.phone || "")}</a></p>
-          <p style="margin-top: 1.2rem;"><a href="#hostDashboard" id="hostPortalBtn" style="opacity: 0.6; font-size: 0.85rem;"><i class="fa-solid fa-lock"></i> Host Portal</a></p>
+          <p style="margin-top: 1.2rem;"><a href="admin.html" id="hostPortalBtn" style="opacity: 0.6; font-size: 0.85rem;"><i class="fa-solid fa-lock"></i> Host Portal</a></p>
         </div>
       `;
     }
@@ -1189,6 +1186,31 @@
   const initialPublicState = normalizePublicState({});
   renderPublicCms(initialPublicState);
   loadPublicCms();
+
+  window.addEventListener("load", function () {
+    const path = window.location.pathname;
+    const isRootPath = path === "/" || path.endsWith("/index.html");
+    if (isRootPath) {
+      if (window.location.hash !== "#home") {
+        history.replaceState(null, "", window.location.pathname + window.location.search + "#home");
+      }
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        const homeSection = document.getElementById("home");
+        if (homeSection) {
+          homeSection.scrollIntoView({ behavior: "auto", block: "start" });
+        }
+      }, 10);
+    }
+  });
+
+  window.addEventListener("hashchange", function () {
+    const path = window.location.pathname;
+    const isRootPath = path === "/" || path.endsWith("/index.html");
+    if (isRootPath && window.location.hash !== "#home") {
+      history.replaceState(null, "", window.location.pathname + window.location.search + "#home");
+    }
+  });
 
   const hostPortal = {
     user: null,
@@ -1305,7 +1327,7 @@
       { key: "name", label: "Name", placeholder: "Payment name" },
       { key: "enabled", label: "Enabled", type: "checkbox" },
       { key: "icon", label: "Icon", placeholder: "fa-solid fa-mobile-screen-button" },
-      { key: "image", label: "Image URL", placeholder: "payments icon/logo.png" },
+      { key: "image", label: "Image URL", placeholder: "assets/payments-icons/logo.png" },
       { key: "details", label: "Details", type: "textarea", rows: 3, placeholder: "Payment details" }
     ]
   };
@@ -1616,7 +1638,7 @@
             <input type="text" data-key="icon" value="${escapeHtml(method.icon || "")}" placeholder="fa-solid fa-credit-card">
           </label>
           <label>Image URL
-            <input type="text" data-key="image" value="${escapeHtml(method.image || "")}" placeholder="payments icon/logo.png">
+            <input type="text" data-key="image" value="${escapeHtml(method.image || "")}" placeholder="assets/payments-icons/logo.png">
           </label>
         </div>
         <label>Details
@@ -1781,6 +1803,9 @@
       document.addEventListener("click", async function (event) {
         const portalLink = event.target.closest("#hostPortalBtn");
         if (!portalLink) return;
+        if (portalLink.tagName.toLowerCase() === "a" && portalLink.getAttribute("href") === "admin.html") {
+          return;
+        }
         event.preventDefault();
         showHostPortal();
         const firebaseApi = await getFirebaseApi();
