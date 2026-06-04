@@ -1,4 +1,9 @@
 (function () {
+  // Prevent browser from restoring previous scroll position on reload
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+
   const body = document.body;
   const siteHeader = document.querySelector(".site-header");
   const menuToggle = document.getElementById("menuToggle");
@@ -25,17 +30,53 @@
   }
 
   if (menuToggle && navPanel) {
-    menuToggle.addEventListener("click", function () {
-      const isOpen = navPanel.classList.toggle("open");
-      menuToggle.setAttribute("aria-expanded", String(isOpen));
+    const setNavOpen = (open) => {
+      navPanel.classList.toggle("open", open);
+      menuToggle.classList.toggle("open", open);
+      menuToggle.setAttribute("aria-expanded", String(Boolean(open)));
+      navPanel.setAttribute("aria-hidden", String(!open));
+    };
+
+    const toggleNav = (ev) => {
+      if (ev) {
+        if (ev.stopPropagation) ev.stopPropagation();
+        if (ev.preventDefault && ev.cancelable) ev.preventDefault();
+      }
+      const isOpen = navPanel.classList.contains("open");
+      setNavOpen(!isOpen);
+    };
+
+    menuToggle.addEventListener("click", toggleNav);
+    menuToggle.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") toggleNav(e);
     });
 
+    // Close when a nav link is clicked
     navPanel.querySelectorAll("a").forEach(function (link) {
       link.addEventListener("click", function () {
-        navPanel.classList.remove("open");
-        menuToggle.setAttribute("aria-expanded", "false");
+        setNavOpen(false);
       });
     });
+
+    // Close when clicking outside the panel
+    document.addEventListener("click", function (e) {
+      if (!navPanel.classList.contains("open")) return;
+      if (!navPanel.contains(e.target) && !menuToggle.contains(e.target)) {
+        setNavOpen(false);
+      }
+    });
+
+    // Close on Escape
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && navPanel.classList.contains("open")) {
+        setNavOpen(false);
+        menuToggle.focus();
+      }
+    });
+
+    // Initialize accessibility state
+    menuToggle.setAttribute("aria-expanded", menuToggle.getAttribute("aria-expanded") || "false");
+    navPanel.setAttribute("aria-hidden", String(!navPanel.classList.contains("open")));
   }
 
   window.addEventListener("scroll", function () {
@@ -429,7 +470,7 @@
       id: "mastercard",
       name: "Mastercard",
       icon: "fa-brands fa-cc-mastercard",
-      image: "assets/payments-icons/Mastercard_Symbol_1.png",
+      image: "assets/payments-icons/Mastercard_Symbol_0.svg",
       enabled: true,
       details: "We will email/WhatsApp you a secure payment link to pay with your Mastercard."
     },
@@ -832,7 +873,13 @@
           };
         }
       });
+      // Preserve scroll position — FullCalendar.render() can scroll the page
+      const savedScrollY = window.scrollY;
+      const htmlEl = document.documentElement;
+      htmlEl.style.scrollBehavior = "auto";
       publicCalendarInstance.render();
+      window.scrollTo(0, savedScrollY);
+      htmlEl.style.scrollBehavior = "";
       syncCalendarSelectionFromInputs();
     } else {
       publicCalendarInstance.removeAllEventSources();
@@ -847,6 +894,28 @@
     if (!grid || !instructions || !hidden) return;
 
     availablePaymentMethods = (state.paymentMethods || DEFAULT_PAYMENT_METHODS).filter(method => method.enabled !== false);
+
+    // Sanitize image paths coming from CMS or external state:
+    // - fix accidental folder name with a space like "payments icon" -> "payments-icons"
+    // - ensure local asset paths are prefixed with "assets/" when they reference payments-icons
+    availablePaymentMethods.forEach(method => {
+      if (!method || !method.image) return;
+      try {
+        // Normalize URL-encoded and unencoded variants
+        method.image = method.image.replace(/payments%20icon/gi, 'payments-icons');
+        method.image = method.image.replace(/payments\s+icon/gi, 'payments-icons');
+        // If image looks like a payments-icons filename without assets/ prefix, add it
+        if (/^payments-icons\//i.test(method.image) || /^payments-icons/i.test(method.image)) {
+          method.image = method.image.replace(/^payments-icons\/?/i, 'assets/payments-icons/');
+        }
+        // If image references the payments-icons folder but doesn't start with assets/, ensure prefix
+        if (/payments-icons/i.test(method.image) && !/^assets\//i.test(method.image) && !/^(https?:|data:|\/)/i.test(method.image)) {
+          method.image = 'assets/' + method.image.replace(/^\/+/, '');
+        }
+      } catch (e) {
+        // ignore sanitization failures
+      }
+    });
     const currentMethod = hidden.value || availablePaymentMethods[0]?.id || "";
 
     grid.innerHTML = availablePaymentMethods.map(method => `
@@ -855,27 +924,63 @@
           ${method.image ? `
             <img class="payment-logo" src="${escapeHtml(encodeURI(method.image))}" alt="${escapeHtml(method.name)}" loading="eager" decoding="async">
           ` : ``}
+          <i class="payment-icon ${escapeHtml(method.icon || "fa-solid fa-credit-card")}"></i>
           <i class="payment-fallback ${escapeHtml(method.icon || "fa-solid fa-credit-card")}"></i>
         </span>
         <span>${escapeHtml(method.name)}</span>
       </button>
     `).join("");
 
+    // Replace SVG <img> tags with inline SVG markup when possible so they render reliably
     grid.querySelectorAll(".payment-logo").forEach(img => {
+      const src = img.getAttribute("src") || "";
+      const isSvg = src.trim().toLowerCase().endsWith(".svg");
+      if (isSvg) {
+        // Attempt to fetch the SVG and inline it. If fetch fails (file:// or CORS), leave the <img> in place.
+        fetch(src).then(resp => {
+          if (!resp.ok) throw new Error("SVG fetch failed");
+          return resp.text();
+        }).then(svgText => {
+          try {
+            const wrapper = document.createElement('span');
+            wrapper.innerHTML = svgText;
+            const svgEl = wrapper.querySelector('svg');
+            if (svgEl) {
+              svgEl.classList.add('payment-logo');
+              svgEl.setAttribute('role', 'img');
+              svgEl.setAttribute('aria-label', img.getAttribute('alt') || '');
+              img.replaceWith(svgEl);
+            }
+          } catch (e) {
+            // ignore and keep img
+          }
+        }).catch(() => {
+          // ignore fetch errors and keep the <img>
+        });
+      }
+      // continue with normal handling below for both svg/img (if left as img)
       const card = img.closest(".payment-method-card");
-      const markLoaded = () => card?.classList.add("image-loaded");
-      if (img.complete && img.naturalWidth > 0) {
+      const markLoaded = () => {
+        card?.classList.add("image-loaded");
+        img.style.display = "";
+      };
+      const markError = () => {
+        card?.classList.remove("image-loaded");
+        img.style.display = "none";
+      };
+      // If image already loaded from cache, check its naturalWidth.
+      // SVGs often report naturalWidth=0 even when they render, so treat SVGs as loaded.
+      const src2 = img.getAttribute("src") || "";
+      const isSvg2 = src2.trim().toLowerCase().endsWith(".svg");
+      if (img.complete && (img.naturalWidth > 0 || isSvg2)) {
         markLoaded();
       } else {
         img.addEventListener("load", markLoaded);
-        img.addEventListener("error", () => {
-          card?.classList.remove("image-loaded");
-          img.style.display = "none";
-        });
+        img.addEventListener("error", markError);
       }
     });
 
-    function activateMethod(methodId) {
+    function activateMethod(methodId, shouldScroll) {
       const method = availablePaymentMethods.find(item => item.id === methodId) || availablePaymentMethods[0];
       if (!method) return;
       hidden.value = method.id;
@@ -890,7 +995,11 @@
         </div>
         <div class="payment-detail-body">${escapeHtml(method.details).replace(/\n/g, "<br>")}</div>
       `;
-      instructions.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      // Only scroll when the user explicitly clicks a payment method,
+      // NOT during programmatic initialisation (which fires on every page load / Firebase update)
+      if (shouldScroll) {
+        instructions.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
     }
 
     if (!grid.dataset.bound) {
@@ -898,11 +1007,11 @@
       grid.addEventListener("click", function (event) {
         const card = event.target.closest(".payment-method-card");
         if (!card) return;
-        activateMethod(card.dataset.method);
+        activateMethod(card.dataset.method, true); // user click — allow scroll
       });
     }
 
-    activateMethod(currentMethod);
+    activateMethod(currentMethod, false); // programmatic init — no scroll
   }
 
   function renderPublicCms(state) {
@@ -1187,30 +1296,25 @@
   renderPublicCms(initialPublicState);
   loadPublicCms();
 
-  window.addEventListener("load", function () {
-    const path = window.location.pathname;
-    const isRootPath = path === "/" || path.endsWith("/index.html");
-    if (isRootPath) {
-      if (window.location.hash !== "#home") {
-        history.replaceState(null, "", window.location.pathname + window.location.search + "#home");
-      }
-      setTimeout(() => {
-        window.scrollTo(0, 0);
-        const homeSection = document.getElementById("home");
-        if (homeSection) {
-          homeSection.scrollIntoView({ behavior: "auto", block: "start" });
-        }
-      }, 10);
-    }
-  });
+  // Always scroll to top on page load – history.scrollRestoration='manual' (set at top)
+  // prevents the browser from restoring a previous scroll position.
+  function goToHomepage() {
+    history.replaceState(null, "", window.location.pathname + window.location.search + "#home");
+    // Temporarily disable CSS scroll-behavior:smooth so the scroll is instant (not animated)
+    const htmlEl = document.documentElement;
+    const prevBehavior = htmlEl.style.scrollBehavior;
+    htmlEl.style.scrollBehavior = "auto";
+    window.scrollTo(0, 0);
+    // Restore smooth scrolling after a short delay so anchor links stay smooth
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        htmlEl.style.scrollBehavior = prevBehavior;
+      });
+    });
+  }
 
-  window.addEventListener("hashchange", function () {
-    const path = window.location.pathname;
-    const isRootPath = path === "/" || path.endsWith("/index.html");
-    if (isRootPath && window.location.hash !== "#home") {
-      history.replaceState(null, "", window.location.pathname + window.location.search + "#home");
-    }
-  });
+  document.addEventListener("DOMContentLoaded", goToHomepage);
+  window.addEventListener("load", goToHomepage);
 
   const hostPortal = {
     user: null,

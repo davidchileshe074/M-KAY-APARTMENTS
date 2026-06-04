@@ -1536,18 +1536,26 @@ body.dark-theme .legend-dot.blocked {
 .payment-method-media {
   position: relative;
   width: 120px;
-  height: 76px;
+  min-height: 100px;
   display: grid;
   place-items: center;
+  grid-template-rows: auto auto;
 }
 
-.payment-method-media i,
-.payment-method-media img {
+.payment-method-media img,
+.payment-method-media .payment-fallback {
   grid-area: 1 / 1;
 }
 
 .payment-method-media img {
   z-index: 2;
+}
+
+.payment-method-media .payment-icon {
+  grid-area: 2 / 1;
+  font-size: 1.4rem;
+  color: var(--muted);
+  margin-top: 0.35rem;
 }
 
 .payment-method-media .payment-fallback {
